@@ -78,11 +78,6 @@ func count_neighbours(b *board, cell_x, cell_y int) int {
 	}
 	return grassland
 
-	// if wall_count < wall_threshold {
-	// 	return grassland
-	// }
-	// return wall
-
 }
 
 func optimise_board(b *board) {
@@ -100,24 +95,21 @@ func optimise_board(b *board) {
 }
 
 func flood_neighbours(b *board, x, y int) []coords {
-	//neighbours := map[coords]int{}
 	var open_nodes []coords
 	var closed_nodes []coords
 
 	open_nodes = append(open_nodes, coords{x, y})
-	counter := 0
 	for len(open_nodes) > 0 {
 		// Use the first entry as the seed
 		loc := open_nodes[0]
-		fmt.Println("Starting new iteration, lenght: ", len(open_nodes))
 		// Move it to closed nodes
 		closed_nodes = append(closed_nodes, open_nodes[0])
-		counter++
 		if len(open_nodes) > 1 {
 			open_nodes = open_nodes[1:]
 		} else {
 			open_nodes = open_nodes[:0]
 		}
+		// FLOOD MODE == Include diagonals. DISABLED.
 		// Check each of its' neighbours.
 		// for y_range := maxInt(0, loc.y-1); y_range < minInt(board_cells_High, loc.y+2); y_range++ {
 		// 	for x_range := maxInt(0, loc.x-1); x_range < minInt(board_cells_Wide, loc.x+2); x_range++ {
@@ -134,11 +126,12 @@ func flood_neighbours(b *board, x, y int) []coords {
 		// 		}
 		// 	}
 		// }
+
+		// FLOOD MODE == Direct neighbours (no diagonals)
 		for y_range := maxInt(0, loc.y-1); y_range < minInt(board_cells_High, loc.y+2); y_range++ {
 			if b[terrain_layer][y_range][loc.x] == b[terrain_layer][loc.y][loc.x] {
 				// they are not in the closed list,
 				if !sliceContains(closed_nodes, coords{loc.x, y_range}) && !sliceContains(open_nodes, coords{loc.x, y_range}) {
-					//fmt.Println("Adding new: ", coords{loc.x, y_range})
 					// add to the open list.
 					open_nodes = append(open_nodes, coords{loc.x, y_range})
 				}
@@ -149,7 +142,6 @@ func flood_neighbours(b *board, x, y int) []coords {
 			if b[terrain_layer][loc.y][x_range] == b[terrain_layer][loc.y][loc.x] {
 				// they are not in the closed list,
 				if !sliceContains(closed_nodes, coords{x_range, loc.y}) && !sliceContains(open_nodes, coords{x_range, loc.y}) {
-					//fmt.Println("Adding new: ", coords{x_range, loc.y})
 					// add to the open list.
 					open_nodes = append(open_nodes, coords{x_range, loc.y})
 				}
@@ -157,51 +149,14 @@ func flood_neighbours(b *board, x, y int) []coords {
 		}
 
 	}
-
-	// //neighbours := []coords{}
-	// fmt.Println("New seed: ", coords{x, y})
-
-	// for y_range := maxInt(0, y-1); y_range < minInt(cellsHigh, y+1); y_range++ {
-	// 	for x_range := maxInt(0, x-1); x_range < minInt(cellsWide, x+1); x_range++ {
-	// 		if b[terrain_layer][y_range][x_range] == b[terrain_layer][y][x] {
-	// 			// add it to candidate list
-	// 			// add it to list to transform
-	// 			if !sliceContains(*neighbours, coords{x_range, y_range}) {
-	// 				fmt.Println("Adding new: ", coords{x_range, y_range})
-	// 				*neighbours = append(*neighbours, coords{x_range, y_range})
-	// 				*neighbours = append(*neighbours, flood_neighbours(b, x_range, y_range, neighbours)...)
-	// 			} else {
-	// 				fmt.Println("Skipping repeated: ", coords{x_range, y_range})
-	// 			}
-	// 			//neighbours[coords{x_range, y_range}] = 1
-	// 		}
-	// 	}
-	// }
-	//for neighbour_cells := range neighbours {
-	//for x_range := range neighbours {
-	//neighbours = append(neighbours, flood_neighbours(b, x_range, y_range, current_terrain)...)
-
-	//	}
-	//}
-
-	//for i:=range
-	fmt.Println("I think I'm exporting ", counter)
 	return closed_nodes
 }
-
-// func flood_neighbours(b *board, x,y){
-// 	candidates:=[]coords
-
-// }
 
 func (g *Game) place_terrain(b *board, x, y int) {
 	if g.flood_mode {
 		// check neighbours and fill
-		//current_terrain := b[terrain_layer][y][x]
-		//flood_to := flood_neighbours(b, x, y)
 		var flood_to []coords
 		flood_to = append(flood_to, flood_neighbours(b, x, y)...)
-		fmt.Println("Flood will fill ", len(flood_to), " neighbours")
 		for _, c := range flood_to {
 			b[terrain_layer][c.y][c.x] = g.object_value
 		}

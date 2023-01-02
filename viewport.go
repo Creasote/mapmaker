@@ -9,10 +9,8 @@ import (
 // It can generate thumbnails to display in a mini-map.
 
 const (
-	vp_width  = vp_cells_wide * spriteSize // The number of pixels wide to be displayed on the screen (640px).
-	vp_height = vp_cells_high * spriteSize // The number of pixels high to be displayed (480px).
-	//width      int // Width of the viewport (see vp_width)
-	//height     int // Height of the viewport (see vp_height)
+	vp_width             = vp_cells_wide * spriteSize // The number of pixels wide to be displayed on the screen (640px).
+	vp_height            = vp_cells_high * spriteSize // The number of pixels high to be displayed (480px).
 	vp_cells_wide        = 90
 	vp_cells_high        = 60
 	scroll_button_offset = 15
@@ -29,19 +27,6 @@ type Viewport struct {
 }
 
 // Viewport helper functions
-
-// func (g *Game) portGameBoard(b *board) [][][]int {
-// 	return b[:][g.viewport.vp_y_offset : g.viewport.vp_y_offset+g.viewport.cells_high][g.viewport.vp_x_offset : g.viewport.vp_x_offset+g.viewport.cells_wide]
-// }
-
-// Function scales the array sizes for RANGE calls to only output the
-// func viewportScale() (int, int, int, int) {
-// 	x_from := viewport.vp_x_offset
-// 	x_to := viewport.vp_x_offset + vp_cells_wide
-// 	y_from := viewport.vp_y_offset
-// 	y_to := viewport.vp_y_offset + vp_cells_high
-// 	return x_from, x_to, y_from, y_to
-// }
 
 func draw_ViewportMap(screen *ebiten.Image) {
 	for y_ind, y := range game_map[terrain_layer][viewport.vp_y_offset : viewport.vp_y_offset+vp_cells_high] {

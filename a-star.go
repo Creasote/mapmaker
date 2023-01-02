@@ -81,11 +81,9 @@ func (e *entity) pathfind(b *board) {
 								if _, ok := open_nodes[coords{x, y}]; !ok {
 									open_nodes[coords{x, y}] = build_node(open_nodes[seed_coords], x, y, b[terrain_layer][y][x], e.target.loc.x, e.target.loc.y)
 								} // else there was already an entry for this node so skip it.
-
 							}
-							// check if the node is already in the closed nodes. If so, compare this path vs previous path.
-							// check if this node is the target. SHOULD the loop continue until open_nodes is empty? Or until it reaches target?
-							// What happens if open nodes is emptied but goal hasn't been reached?
+							// TODO: check if this node is the target. SHOULD the loop continue until open_nodes is empty? Or until it reaches target?
+							// TODO: What happens if open nodes is emptied but goal hasn't been reached?
 						}
 					}
 				}
@@ -100,8 +98,6 @@ func (e *entity) pathfind(b *board) {
 					e.path = append(e.path, next)
 					next = closed_nodes[next].prev.loc
 				}
-			} else {
-				//fmt.Println("Target was not found.")
 			}
 		}
 	}

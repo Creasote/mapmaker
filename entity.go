@@ -1,5 +1,6 @@
 package main
 
+// Adds a generic player entity. Use as a template for various entity types.
 func place_entity(x, y int) {
 
 	entity_list = append(entity_list, &entity{
@@ -22,6 +23,7 @@ func place_entity(x, y int) {
 
 }
 
+// Sets the Goal location.
 func set_goal(x, y int) {
 	entity_list[0].loc = coords{x, y}
 	game_map[entity_layer][y][x] = 1 // Sets goal, able to be retrieved on load.

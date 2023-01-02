@@ -16,17 +16,15 @@ func (g *Game) parse_mouseclick(x, y int) {
 	} else if x < vp_x_max && y < vp_y_max {
 		// The click was in the game map. Normalise the coordinates to match the
 		// underlying grid structure, including removing the scroll button spacing.
-		//x = (x - scroll_button_offset) / spriteSize
-		//y = (y - scroll_button_offset) / spriteSize
 		x, y = viewportClick(x, y)
 
-		//switch g.object_value {
-		//case 0:
+		// Object Value (-1) is the goal (X)
 		if g.object_value == -1 {
 			set_goal(x, y)
+			// Object Value (0) is a pathfinder entity.
 		} else if g.object_value == 0 {
 			place_entity(x, y)
-
+			// All others are terrain types.
 		} else {
 			// Set game map array to value.
 			g.place_terrain(&game_map, x, y)
@@ -34,7 +32,7 @@ func (g *Game) parse_mouseclick(x, y int) {
 
 	}
 	// else mouseclick was in the menu.
-	// put menu mouseclick handling here.
+	// TODO: put menu mouseclick handling here.
 }
 
 // Take keyboard input, and pass to relevant handler.
@@ -55,16 +53,25 @@ func (g *Game) parse_keyboard() {
 		case ebiten.KeyL:
 			// Required debounce
 			if inpututil.IsKeyJustPressed(k) {
-				fmt.Println("Loading map file from disk...")
 				console.console_add("Loading map file from disk...")
 				restored_map, err := load_map()
 				if err != nil {
-					fmt.Println("Did not successfully load map file from disk.")
 					console.console_add("Did not successfully load map file from disk.")
 				}
 
 				game_map = restored_map
+				for y_ind, x_axis := range game_map[entity_layer] {
+					for x_ind, cell_val := range x_axis {
+						// Goal location is demarked as a 1 on the entity layer.
+						// TODO: remove magic number.
+						if cell_val == 1 {
+							entity_list[0].loc = coords{x_ind, y_ind}
+						}
+					}
+				}
 			}
+
+			// TODO: Add Diamond Square map generation
 
 			// Create random noise map
 		case ebiten.KeyR:
@@ -169,46 +176,4 @@ func (g *Game) parse_keyboard() {
 			g.keylist = (g.keylist)[:0]
 		}
 	}
-
-	/*
-	   	"3: sand terrain",
-	   	"4: forest",
-	   	"5: water",
-	   	"8: cliff (impassable)",
-	   	"9: wall (impassable)",
-
-	   // sand                 = 3
-	   // forest               = 5
-	   // water                = 9
-	   // impassable_threshold = 90
-	   // cliff                = 98
-	   // wall                 = 99
-
-
-	*/
-
-	// if inpututil.IsKeyJustPressed(ebiten.KeyS) {
-	// 	fmt.Println("Saving...")
-	// 	err := save_map(game_map)
-	// 	if err != nil {
-	// 		fmt.Println("Error saving, map not exported")
-	// 	}
-	// }
-
-	// if inpututil.IsKeyJustPressed(ebiten.KeyL) {
-	// 	fmt.Println("Loading map file from disk...")
-	// 	_, err := load_map()
-	// 	if err != nil {
-	// 		fmt.Println("Did not successfully load map file from disk.")
-	// 	}
-	// }
-
-	// if inpututil.IsKeyJustPressed(ebiten.KeyR) {
-	// 	game_map = randomise_board(&game_map)
-	// }
-
-	// if inpututil.IsKeyJustPressed(ebiten.KeyO) {
-	// 	optimise_board(&game_map)
-	// }
-
 }
