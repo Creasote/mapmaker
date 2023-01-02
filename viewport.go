@@ -1,6 +1,10 @@
 package main
 
-import "github.com/hajimehoshi/ebiten/v2"
+import (
+	"fmt"
+
+	"github.com/hajimehoshi/ebiten/v2"
+)
 
 // Viewport is designed to take the full game board, and only display a sub-image of it.
 // It can scroll around the game board.
@@ -11,7 +15,7 @@ const (
 	vp_height = vp_cells_high * spriteSize // The number of pixels high to be displayed (480px).
 	//width      int // Width of the viewport (see vp_width)
 	//height     int // Height of the viewport (see vp_height)
-	vp_cells_wide        = 100
+	vp_cells_wide        = 90
 	vp_cells_high        = 60
 	scroll_button_offset = 15
 	vp_x_max             = vp_width + scroll_button_offset
@@ -33,13 +37,13 @@ type Viewport struct {
 // }
 
 // Function scales the array sizes for RANGE calls to only output the
-func viewportScale() (int, int, int, int) {
-	x_from := viewport.vp_x_offset
-	x_to := viewport.vp_x_offset + vp_cells_wide
-	y_from := viewport.vp_y_offset
-	y_to := viewport.vp_y_offset + vp_cells_high
-	return x_from, x_to, y_from, y_to
-}
+// func viewportScale() (int, int, int, int) {
+// 	x_from := viewport.vp_x_offset
+// 	x_to := viewport.vp_x_offset + vp_cells_wide
+// 	y_from := viewport.vp_y_offset
+// 	y_to := viewport.vp_y_offset + vp_cells_high
+// 	return x_from, x_to, y_from, y_to
+// }
 
 func draw_ViewportMap(screen *ebiten.Image) {
 	for y_ind, y := range game_map[terrain_layer][viewport.vp_y_offset : viewport.vp_y_offset+vp_cells_high] {
@@ -60,7 +64,9 @@ func draw_ViewportEntities(screen *ebiten.Image) {
 			// If the entity has a path, draw the waypoints.
 			if len(ent.path) > 0 {
 				for _, waypoint := range ent.path {
+					fmt.Print("Pathing via coords: ", waypoint)
 					if tf, wp_modfied_x, wp_modified_y := isInViewport(waypoint.x, waypoint.y); tf == true {
+						fmt.Println(" modified to: ", wp_modfied_x, ",", wp_modified_y)
 						op := &ebiten.DrawImageOptions{}
 						op.GeoM.Translate((float64(wp_modfied_x) * spriteSize), (float64(wp_modified_y) * spriteSize))
 						screen.DrawImage(img_path, op)
@@ -76,7 +82,10 @@ func draw_ViewportEntities(screen *ebiten.Image) {
 func isInViewport(x, y int) (bool, int, int) {
 	if x > viewport.vp_x_offset && x < viewport.vp_x_offset+vp_cells_wide {
 		if y > viewport.vp_y_offset && y < viewport.vp_y_offset+vp_cells_high {
-			return true, x - viewport.vp_x_offset, y - viewport.vp_y_offset
+			// The +1 modifier is a magic number to account for the size of the scroll offset.
+			// However, x,y are in cells, whereas the scrollbar offset const is in pixels.
+			// 1 cell == 16 pixels.
+			return true, x + 1 - viewport.vp_x_offset, y + 1 - viewport.vp_y_offset
 		}
 	}
 	return false, 0, 0
@@ -85,11 +94,12 @@ func isInViewport(x, y int) (bool, int, int) {
 // Take the x,y location of the click, and normalises it to the underlying array,
 // including scaling, and shifting the viewport.
 func viewportClick(x, y int) (int, int) {
+	//fmt.Print("Click logged on screen value: ", x, ",", y)
 	x = ((x - scroll_button_offset) / spriteSize) + viewport.vp_x_offset
 	y = ((y - scroll_button_offset) / spriteSize) + viewport.vp_y_offset
-
+	//fmt.Println(" adjusted to ", x, ",", y)
 	// Ensure value is valid.
-	x, y = validateViewportOffsets(x, y)
+	x, y = validateViewportClickOffsets(x, y)
 
 	return x, y
 }
@@ -116,17 +126,34 @@ func viewportInScroll(x, y int) (bool, int, int) {
 }
 
 // Takes in the viewport position modifiers, validates, and then applies.
+// Validation requires that the offset cannot be negative, and
+// cannot be greater than that which takes the far side of the viewport past the game map bounds.
 func updateViewportScroll(x, y int) {
 	viewport.vp_x_offset, viewport.vp_y_offset = validateViewportOffsets(viewport.vp_x_offset+x, viewport.vp_y_offset+y)
 
 }
 
+// Validates the offsets generated for viewport operations.
+// Value must be between cell zero and (the right/down most cell visible on the viewport)
 func validateViewportOffsets(x, y int) (int, int) {
-	x = maxInt(x, 0)
 	x = minInt(x, board_cells_Wide-1-vp_cells_wide)
+	x = maxInt(x, 0)
 
-	y = maxInt(y, 0)
 	y = minInt(y, board_cells_High-1-vp_cells_high)
+	y = maxInt(y, 0)
+
+	return x, y
+}
+
+// Validates the offsets applied to mouse inputs in the viewport.
+// Values must be between zero (the first row/column on the board)
+// to the maximum board size.
+func validateViewportClickOffsets(x, y int) (int, int) {
+	x = minInt(x, board_cells_Wide-1)
+	x = maxInt(x, 0)
+
+	y = minInt(y, board_cells_High-1)
+	y = maxInt(y, 0)
 
 	return x, y
 }
