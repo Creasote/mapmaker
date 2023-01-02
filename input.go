@@ -22,7 +22,9 @@ func (g *Game) parse_mouseclick(x, y int) {
 
 		//switch g.object_value {
 		//case 0:
-		if g.object_value == 0 {
+		if g.object_value == -1 {
+			set_goal(x, y)
+		} else if g.object_value == 0 {
 			place_entity(x, y)
 
 		} else {
@@ -79,7 +81,7 @@ func (g *Game) parse_keyboard() {
 			}
 
 			// Display current coords on mouse click
-		case ebiten.KeyG:
+		case ebiten.KeyC:
 			// Required debounce
 			if inpututil.IsKeyJustPressed(k) {
 				x, y := viewportClick(ebiten.CursorPosition())
@@ -93,6 +95,14 @@ func (g *Game) parse_keyboard() {
 			if inpututil.IsKeyJustPressed(k) {
 				g.object_value = 0
 				console.console_add("Placing PATHFINDER units")
+			}
+
+			// Set Goal location
+		case ebiten.KeyX:
+			// Required debounce
+			if inpututil.IsKeyJustPressed(k) {
+				g.object_value = -1
+				console.console_add("Updating Goal (X)")
 			}
 
 			// Road

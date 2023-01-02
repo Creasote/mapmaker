@@ -21,3 +21,8 @@ func place_entity(x, y int) {
 	go entity_list[len(entity_list)-1].move_entity()
 
 }
+
+func set_goal(x, y int) {
+	entity_list[0].loc = coords{x, y}
+	game_map[entity_layer][y][x] = 1 // Sets goal, able to be retrieved on load.
+}

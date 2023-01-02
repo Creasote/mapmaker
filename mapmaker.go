@@ -119,21 +119,43 @@ func flood_neighbours(b *board, x, y int) []coords {
 			open_nodes = open_nodes[:0]
 		}
 		// Check each of its' neighbours.
+		// for y_range := maxInt(0, loc.y-1); y_range < minInt(board_cells_High, loc.y+2); y_range++ {
+		// 	for x_range := maxInt(0, loc.x-1); x_range < minInt(board_cells_Wide, loc.x+2); x_range++ {
+		// 		// If they are the right value AND
+		// 		if b[terrain_layer][y_range][x_range] == b[terrain_layer][loc.y][loc.x] {
+		// 			// they are not in the closed list,
+		// 			if !sliceContains(closed_nodes, coords{x_range, y_range}) && !sliceContains(open_nodes, coords{x_range, y_range}) {
+		// 				fmt.Println("Adding new: ", coords{x_range, y_range})
+		// 				// add to the open list.
+		// 				open_nodes = append(open_nodes, coords{x_range, y_range})
+		// 			} else {
+		// 				fmt.Println("Skipping repeat: ", coords{x_range, y_range})
+		// 			}
+		// 		}
+		// 	}
+		// }
 		for y_range := maxInt(0, loc.y-1); y_range < minInt(board_cells_High, loc.y+2); y_range++ {
-			for x_range := maxInt(0, loc.x-1); x_range < minInt(board_cells_Wide, loc.x+2); x_range++ {
-				// If they are the right value AND
-				if b[terrain_layer][y_range][x_range] == b[terrain_layer][loc.y][loc.x] {
-					// they are not in the closed list,
-					if !sliceContains(closed_nodes, coords{x_range, y_range}) && !sliceContains(open_nodes, coords{x_range, y_range}) {
-						fmt.Println("Adding new: ", coords{x_range, y_range})
-						// add to the open list.
-						open_nodes = append(open_nodes, coords{x_range, y_range})
-					} else {
-						fmt.Println("Skipping repeat: ", coords{x_range, y_range})
-					}
+			if b[terrain_layer][y_range][loc.x] == b[terrain_layer][loc.y][loc.x] {
+				// they are not in the closed list,
+				if !sliceContains(closed_nodes, coords{loc.x, y_range}) && !sliceContains(open_nodes, coords{loc.x, y_range}) {
+					//fmt.Println("Adding new: ", coords{loc.x, y_range})
+					// add to the open list.
+					open_nodes = append(open_nodes, coords{loc.x, y_range})
 				}
 			}
 		}
+		for x_range := maxInt(0, loc.x-1); x_range < minInt(board_cells_Wide, loc.x+2); x_range++ {
+			// If they are the right value AND
+			if b[terrain_layer][loc.y][x_range] == b[terrain_layer][loc.y][loc.x] {
+				// they are not in the closed list,
+				if !sliceContains(closed_nodes, coords{x_range, loc.y}) && !sliceContains(open_nodes, coords{x_range, loc.y}) {
+					//fmt.Println("Adding new: ", coords{x_range, loc.y})
+					// add to the open list.
+					open_nodes = append(open_nodes, coords{x_range, loc.y})
+				}
+			}
+		}
+
 	}
 
 	// //neighbours := []coords{}
