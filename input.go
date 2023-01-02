@@ -82,11 +82,9 @@ func (g *Game) parse_keyboard() {
 		case ebiten.KeyG:
 			// Required debounce
 			if inpututil.IsKeyJustPressed(k) {
-				x, y := ebiten.CursorPosition()
-				x = x / spriteSize
-				y = y / spriteSize
+				x, y := viewportClick(ebiten.CursorPosition())
 				str := fmt.Sprint(x) + "." + fmt.Sprint(y)
-				console.console_add("Coords: " + str)
+				console.console_add("Grid coords: " + str)
 			}
 
 			// Pathfinder

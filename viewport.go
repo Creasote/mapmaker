@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -64,9 +62,7 @@ func draw_ViewportEntities(screen *ebiten.Image) {
 			// If the entity has a path, draw the waypoints.
 			if len(ent.path) > 0 {
 				for _, waypoint := range ent.path {
-					fmt.Print("Pathing via coords: ", waypoint)
 					if tf, wp_modfied_x, wp_modified_y := isInViewport(waypoint.x, waypoint.y); tf == true {
-						fmt.Println(" modified to: ", wp_modfied_x, ",", wp_modified_y)
 						op := &ebiten.DrawImageOptions{}
 						op.GeoM.Translate((float64(wp_modfied_x) * spriteSize), (float64(wp_modified_y) * spriteSize))
 						screen.DrawImage(img_path, op)
@@ -94,10 +90,8 @@ func isInViewport(x, y int) (bool, int, int) {
 // Take the x,y location of the click, and normalises it to the underlying array,
 // including scaling, and shifting the viewport.
 func viewportClick(x, y int) (int, int) {
-	//fmt.Print("Click logged on screen value: ", x, ",", y)
 	x = ((x - scroll_button_offset) / spriteSize) + viewport.vp_x_offset
 	y = ((y - scroll_button_offset) / spriteSize) + viewport.vp_y_offset
-	//fmt.Println(" adjusted to ", x, ",", y)
 	// Ensure value is valid.
 	x, y = validateViewportClickOffsets(x, y)
 
