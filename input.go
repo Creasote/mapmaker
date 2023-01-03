@@ -70,6 +70,7 @@ func (g *Game) parse_keyboard() {
 						}
 					}
 				}
+				drawMinimap(&game_map)
 			}
 
 			// TODO: Add Diamond Square map generation

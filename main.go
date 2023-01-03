@@ -77,6 +77,7 @@ const (
 )
 
 var game_map board
+var img_minimap *ebiten.Image
 
 var START = coords{0, 0}
 var GOAL = coords{18, 6}
@@ -112,6 +113,7 @@ type Game struct {
 	*/
 	scroll_state       bool // Goes True when the cursor is detected in the scroll zone. Flips back to False when it shifts outside.
 	scroll_state_since time.Time
+	tick               int
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
@@ -132,7 +134,9 @@ func (g *Game) Update() error {
 	// Holding the left button for more than 30 ticks (~0.5 seconds)
 	// will put it in to paint mode. Drag around to pain terrain (only).
 	if inpututil.MouseButtonPressDuration(ebiten.MouseButtonLeft) > 30 {
-		g.paint = true
+		if g.object_value > 0 {
+			g.paint = true
+		}
 	}
 
 	// To exit terrain paint mode, simply release the mouse button.
@@ -170,6 +174,13 @@ func (g *Game) Update() error {
 		}
 	}
 
+	// Tick related updates
+	// g.tick++
+	// if g.tick > 60 {
+	// 	g.tick = 0
+	// 	createMinimap(&game_map)
+	// }
+
 	return nil
 }
 
@@ -181,7 +192,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	draw_ViewportEntities(screen)
 
 	// Draw Menu
-	draw_Menu(screen)
+	g.draw_Menu(screen)
 	//screen.draw_Menu()
 
 	// Print processing rate for performance monitoring
@@ -316,6 +327,10 @@ func init() {
 
 	console.console_add("Initialising menu...")
 	init_Menu()
+
+	// Init minimap
+	initMinimap()
+
 	console.console_add("Init complete.")
 }
 
