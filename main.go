@@ -95,6 +95,11 @@ type Game struct {
 	keylist    []ebiten.Key
 	flood_mode bool // true places tiles in flood mode,
 	// false places a single tile at the cursor position
+	paint bool // when true, it indicates cell-by-cell painting is active.
+	// When active, any cells the mouse passes over will be "painted" with the object
+	// per game.object_value (only applies to terrain, not entities).
+	// Activated by holding down mouse button in single paint mode. Deactivated
+	// simply by releasing mouse button.
 	object_value int /* records what type of tile or object is placed on mouse click:
 	"0: pathfinder"
 	"1: road terrain",
@@ -115,17 +120,39 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 
 func (g *Game) Update() error {
 	// Take mouse inputs
+	// Get the cursor position once to re-use during update:
+	cursor_x, cursor_y := ebiten.CursorPosition()
+
+	// Left-Click will place either an entity or a terrain.
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		g.flood_mode = false
-		g.parse_mouseclick(ebiten.CursorPosition())
+		g.parse_mouseclick(cursor_x, cursor_y)
 	}
 
+	// Holding the left button for more than 30 ticks (~0.5 seconds)
+	// will put it in to paint mode. Drag around to pain terrain (only).
+	if inpututil.MouseButtonPressDuration(ebiten.MouseButtonLeft) > 30 {
+		g.paint = true
+	}
+
+	// To exit terrain paint mode, simply release the mouse button.
+	if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
+		g.paint = false
+	}
+
+	// Right-click will flood fill terrain.
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
 		g.flood_mode = true
-		g.parse_mouseclick(ebiten.CursorPosition())
+		g.parse_mouseclick(cursor_x, cursor_y)
 	}
 
-	if tf, x_vp_modifier, y_vp_modifier := viewportInScroll(ebiten.CursorPosition()); tf == true {
+	// If paint mode is enabled, apply a cell-by-cell paint.
+	if g.paint {
+		cursor_x, cursor_y = viewportClick(cursor_x, cursor_y)
+		g.place_terrain(&game_map, cursor_x, cursor_y)
+	}
+
+	if tf, x_vp_modifier, y_vp_modifier := viewportInScroll(cursor_x, cursor_y); tf == true {
 		updateViewportScroll(x_vp_modifier, y_vp_modifier)
 	}
 
@@ -138,6 +165,7 @@ func (g *Game) Update() error {
 	// Update pathing for entities
 	for _, e := range entity_list {
 		if len(e.path) == 0 {
+			// TODO: investigate why pathing glitches when using go-routines.
 			e.pathfind(&game_map)
 		}
 	}

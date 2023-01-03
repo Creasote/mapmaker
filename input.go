@@ -10,6 +10,7 @@ import (
 // Work out what zone a mouse click occurs, and pass on to relevant handler.
 func (g *Game) parse_mouseclick(x, y int) {
 	if x < scroll_button_offset {
+		// TODO: do we need this click action to move viewport? IF so, add to move right/down, too.
 		viewport.vp_x_offset = maxInt(0, viewport.vp_x_offset-1)
 	} else if y < scroll_button_offset {
 		viewport.vp_y_offset = maxInt(0, viewport.vp_y_offset-1)
