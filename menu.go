@@ -114,7 +114,7 @@ func init_Menu() {
 // }
 
 //func (screen *ebiten.Image) draw_Menu() {
-func draw_Menu(screen *ebiten.Image) {
+func (g *Game) draw_Menu(screen *ebiten.Image) {
 	// Draw border
 	for x := xMainMenuOffset + spriteSize; x < (xScreen - spriteSize); x += spriteSize {
 		op := &ebiten.DrawImageOptions{}
@@ -177,6 +177,12 @@ func draw_Menu(screen *ebiten.Image) {
 		text.Draw(screen, console_text+string('\n'), mplusNormalFont, xConsole, yConsole+(i*console.print_height), color.White)
 	}
 
+	// Draw minimap
+	op = &ebiten.DrawImageOptions{}
+	op.GeoM.Scale(float64(mm_scaling), float64(mm_scaling))
+	// TODO: set a better position. Make it so the position is fixed to the RHS, and shifts based on map size.
+	op.GeoM.Translate(float64(xMainMenuOffset+spriteSize), float64(yScreen-(2*board_cells_High+50)))
+	screen.DrawImage(img_minimap, op)
 }
 
 func (c *Console) console_add(s string) {

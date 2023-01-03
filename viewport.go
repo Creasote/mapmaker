@@ -58,7 +58,7 @@ func draw_ViewportEntities(screen *ebiten.Image) {
 	}
 }
 
-// Recieve the entities x and y coords, and determine whether this falls within the displayable viewport.
+// Recieve the entities x and y coords (CELL coord, not pixel), and determine whether this falls within the displayable viewport.
 // If it does, modify the x and y coords for screen drawing.
 func isInViewport(x, y int) (bool, int, int) {
 	if x > viewport.vp_x_offset && x < viewport.vp_x_offset+vp_cells_wide {
