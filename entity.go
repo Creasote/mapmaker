@@ -7,6 +7,7 @@ func place_entity(x, y int) {
 		name:               "Clicker",
 		loc:                coords{x, y},
 		mob_type:           0,
+		alive:              true,
 		sprite_img:         img_player,
 		movement_speed:     50,
 		health:             0,

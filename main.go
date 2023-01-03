@@ -32,13 +32,14 @@ type entity struct {
 	name               string
 	loc                coords
 	mob_type           int
+	alive              bool
 	sprite_img         *ebiten.Image
-	movement_speed     float32
+	movement_speed     float32 // Should be between 0 (no movement) and ~ 50. Higher values may be OP.
 	health             float32
-	armour             float32
+	armour             float32 // Should be between 0 (no reduction) and 1000 (full reduction in damage taken)
 	damage_per_attack  float32
 	attacks_per_second float32
-	attack_success_pc  float32
+	attack_success_pc  float32 // Should be [0,1). Crit chance is calculated as the difference between 1 and attack_success_pc.
 	attack_range       float32
 	last_attack_time   int
 	target             *entity
@@ -167,6 +168,7 @@ func (g *Game) Update() error {
 	//parse_keyboard(&g.keylist)
 
 	// Update pathing for entities
+	// TODO: Use same iteration to remove dead enemies.
 	for _, e := range entity_list {
 		if len(e.path) == 0 {
 			// TODO: investigate why pathing glitches when using go-routines.
@@ -307,18 +309,20 @@ func init() {
 	console.console_add("Images successfully loaded.")
 
 	// create sprite - first one in the array is the GOAL
+	// TODO: see about moving goal / enemy to separate array?
 	goal_entity := entity{
 		name:               "Goal",
 		loc:                GOAL,
 		mob_type:           0,
+		alive:              true,
 		sprite_img:         img_goal,
 		movement_speed:     0,
-		health:             0,
-		armour:             0,
-		damage_per_attack:  0,
-		attacks_per_second: 0,
-		attack_success_pc:  0,
-		attack_range:       0,
+		health:             10000000,
+		armour:             10000000,
+		damage_per_attack:  20,
+		attacks_per_second: 5,
+		attack_success_pc:  0.95,
+		attack_range:       5,
 		last_attack_time:   0,
 		target:             nil,
 		path:               []coords{},
@@ -338,6 +342,7 @@ func (e *entity) move_entity() {
 	for {
 		if len(e.path) > 0 {
 			// Set the location to the next waypoint, and remove that waypoint from the path list.
+			// TODO: Include calculation that slows down based on terrain.
 			e.loc, e.path = e.path[len(e.path)-1], e.path[:len(e.path)-1]
 		}
 
