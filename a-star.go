@@ -42,7 +42,7 @@ func choose_node(pool map[coords]*node) coords {
 // path find
 func (e *entity) pathfind(b *board) {
 	if e.target != nil {
-		if estimate_distance(e.loc, e.target.loc) > e.attack_range {
+		if estimate_distance(e.loc, e.target[0].loc) > e.attack_range {
 			open_nodes := make(map[coords]*node)
 			closed_nodes := make(map[coords]*node)
 
@@ -51,7 +51,7 @@ func (e *entity) pathfind(b *board) {
 				prev:     nil,
 				terrain:  b[terrain_layer][e.loc.y][e.loc.x],
 				cost:     float32(b[terrain_layer][e.loc.y][e.loc.x]),
-				distance: estimate_distance(e.loc, e.target.loc),
+				distance: estimate_distance(e.loc, e.target[0].loc),
 				estimate: 0,
 			}
 			open_nodes[e.loc].estimate = open_nodes[e.loc].cost + open_nodes[e.loc].distance
@@ -79,7 +79,7 @@ func (e *entity) pathfind(b *board) {
 								// the node hasn't been visited before. Perform the same evaluation (is this path better than what's arleady in there.
 								// The assumption might be that it's not, or we would have gotten here first. TODO: Validate this assumption.)
 								if _, ok := open_nodes[coords{x, y}]; !ok {
-									open_nodes[coords{x, y}] = build_node(open_nodes[seed_coords], x, y, b[terrain_layer][y][x], e.target.loc.x, e.target.loc.y)
+									open_nodes[coords{x, y}] = build_node(open_nodes[seed_coords], x, y, b[terrain_layer][y][x], e.target[0].loc.x, e.target[0].loc.y)
 								} // else there was already an entry for this node so skip it.
 							}
 							// TODO: check if this node is the target. SHOULD the loop continue until open_nodes is empty? Or until it reaches target?
@@ -92,7 +92,7 @@ func (e *entity) pathfind(b *board) {
 				delete(open_nodes, seed_coords)
 			}
 			// Target was found, work our way back, populating the path
-			next := coords{e.target.loc.x, e.target.loc.y}
+			next := coords{e.target[0].loc.x, e.target[0].loc.y}
 			if _, ok := closed_nodes[next]; ok {
 				for closed_nodes[next].prev != nil {
 					e.path = append(e.path, next)

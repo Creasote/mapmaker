@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
 	"time"
@@ -12,6 +13,15 @@ const (
 	// and an entity with 100 armour is hit, their armour is reduced to (100 * 0.99 = 99)
 	maxArmour = 1000
 )
+
+func combatCycle() {
+	for {
+		for _, e := range entity_list {
+			e.brain()
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+}
 
 // For each entity, find if their target is in range.
 // For fixed locale (ie bases), find their nearest non-friendly neighbour.
@@ -35,19 +45,33 @@ func (e *entity) findEnemy() *entity {
 // Begin combat system.
 // On game tick (or timer?), each entity attacks their chosen target.
 func (self *entity) attackEnemy(foe *entity) {
+	// If combat has not yet been initiated, do it now.
+	if !self.inCombat {
+		self.initiateCombat(foe)
+	}
 	// Damage is calculated as:
 	now := time.Now().UnixMilli()
 	// If sufficient time has passed, attack again.
 	if int(now) > self.last_attack_time+int(1000/self.attacks_per_second) {
+		console.console_add("Attacking.")
 		// Update last attack time, regardless of whether the attack is a success or not. (You don't get a freebie for missing)
 		self.last_attack_time = int(now)
 		if self.successfullyHits(foe) {
+			console.console_add("Successful hit.")
 			// TODO: assign points for successful hit.
 			self.applyDamage(foe)
 			if foe.alive == false {
 				// TODO: assign points for successful kill.
-				self.target = nil
+				//self.target[0] = nil
+				if len(self.target) > 1 {
+					self.target = self.target[1:]
+				} else {
+					self.target = nil
+				}
+				self.inCombat = false
 			}
+		} else {
+			console.console_add("Missed target")
 		}
 	}
 }
@@ -98,7 +122,24 @@ func (me *entity) takeDamage(dmg float32) {
 	// Apply armour derate
 	me.armour = me.armour * armourDeratingFactor
 	me.health = me.health - dmg
+	console.console_add("Taking damage: " + fmt.Sprint(dmg))
+	console.console_add("Health remaining: " + fmt.Sprint(me.health))
 	if me.health <= 0 {
-		me.alive = false
+		//me.alive = false
+		//me.target[0] = nil
+		me.die()
 	}
+}
+
+// Sends a signal to a target that they are being attacked.
+func (me *entity) initiateCombat(f *entity) {
+	me.inCombat = true
+	f.receiveCombat(me)
+}
+
+// Recieves a signal that entity is under attack, and adds the attacker
+// to the (end of the) target list.
+func (me *entity) receiveCombat(f *entity) {
+	me.inCombat = true
+	me.target = append(me.target, f)
 }
