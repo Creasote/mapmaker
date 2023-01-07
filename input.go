@@ -19,12 +19,16 @@ func (g *Game) parse_mouseclick(x, y int) {
 		// underlying grid structure, including removing the scroll button spacing.
 		x, y = viewportClick(x, y)
 
-		// Object Value (-1) is the goal (X)
-		if g.object_value == -1 {
-			set_goal(x, y)
+		// Object Value (-2) is a spawner
+		if g.object_value == -2 {
+			// TODO: review if threading these is appropriate
+			go placeSpawner(x, y)
+		} else if g.object_value == -1 {
+			// Object Value (-1) is the goal (X)
+			setGoal(x, y)
 			// Object Value (0) is a pathfinder entity.
 		} else if g.object_value == 0 {
-			place_entity(x, y)
+			placeEntity(x, y)
 			// All others are terrain types.
 		} else {
 			// Set game map array to value.
@@ -104,6 +108,13 @@ func (g *Game) parse_keyboard() {
 			if inpututil.IsKeyJustPressed(k) {
 				g.object_value = 0
 				console.console_add("Placing PATHFINDER units")
+			}
+
+			// Spawner
+		case ebiten.KeyU:
+			// Required debounce
+			if inpututil.IsKeyJustPressed(k) {
+				g.object_value = -2
 			}
 
 			// Set Goal location

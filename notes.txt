@@ -1,0 +1,19 @@
+
+
+Combat system:
+
+put yourself in an array when you start attacking
+declare combat (alerts the foe)
+foe puts themselves in the combat array
+
+
+every tick, range over the combat array and perform attacks
+
+
+
+
+
+alternative:
+
+when spawned, start a go routine that is the "brain" of the entity, which continues until they die.
+brain decides to attack (or otherwise)

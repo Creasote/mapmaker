@@ -1,0 +1,38 @@
+Date : 2023-01-03 22:26:06
+Directory : /home/creasote/Documents/Projects/Go/mapmaker
+Total : 12 files,  1072 codes, 261 comments, 197 blanks, all 1530 lines
+
+Languages
++------------------+------------+------------+------------+------------+------------+
+| language         | files      | code       | comment    | blank      | total      |
++------------------+------------+------------+------------+------------+------------+
+| Go               |         10 |        977 |        261 |        192 |      1,430 |
+| Go Checksum File |          1 |         79 |          0 |          1 |         80 |
+| Go Module File   |          1 |         16 |          0 |          4 |         20 |
++------------------+------------+------------+------------+------------+------------+
+
+Directories
++-------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                        | files      | code       | comment    | blank      | total      |
++-------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                           |         12 |      1,072 |        261 |        197 |      1,530 |
++-------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++-------------------------------------------------------------+------------------+------------+------------+------------+------------+
+| filename                                                    | language         | code       | comment    | blank      | total      |
++-------------------------------------------------------------+------------------+------------+------------+------------+------------+
+| /home/creasote/Documents/Projects/Go/mapmaker/a-star.go     | Go               |         81 |         13 |         11 |        105 |
+| /home/creasote/Documents/Projects/Go/mapmaker/combat.go     | Go               |         62 |         29 |         14 |        105 |
+| /home/creasote/Documents/Projects/Go/mapmaker/entity.go     | Go               |         25 |          2 |          5 |         32 |
+| /home/creasote/Documents/Projects/Go/mapmaker/go.mod        | Go Module File   |         16 |          0 |          4 |         20 |
+| /home/creasote/Documents/Projects/Go/mapmaker/go.sum        | Go Checksum File |         79 |          0 |          1 |         80 |
+| /home/creasote/Documents/Projects/Go/mapmaker/helper_fns.go | Go               |         21 |          2 |          4 |         27 |
+| /home/creasote/Documents/Projects/Go/mapmaker/input.go      | Go               |        119 |         42 |         21 |        182 |
+| /home/creasote/Documents/Projects/Go/mapmaker/main.go       | Go               |        270 |         48 |         51 |        369 |
+| /home/creasote/Documents/Projects/Go/mapmaker/mapmaker.go   | Go               |        120 |         26 |         22 |        168 |
+| /home/creasote/Documents/Projects/Go/mapmaker/menu.go       | Go               |        122 |         53 |         28 |        203 |
+| /home/creasote/Documents/Projects/Go/mapmaker/minimap.go    | Go               |         67 |         18 |         15 |        100 |
+| /home/creasote/Documents/Projects/Go/mapmaker/viewport.go   | Go               |         90 |         28 |         21 |        139 |
+| Total                                                       |                  |      1,072 |        261 |        197 |      1,530 |
++-------------------------------------------------------------+------------------+------------+------------+------------+------------+

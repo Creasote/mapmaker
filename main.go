@@ -23,35 +23,59 @@ type node struct {
 	loc      coords
 	prev     *node
 	terrain  int
-	cost     float32 // cost to get to this point, including it's own terrain cost
-	distance float32 // estimated distance to goal
-	estimate float32 // cost + estimated distance to goal
+	cost     float64 // cost to get to this point, including it's own terrain cost
+	distance float64 // estimated distance to goal
+	estimate float64 // cost + estimated distance to goal
 }
 
 type entity struct {
 	name               string
 	loc                coords
 	mob_type           int
+	alive              bool
+	action             int  // Index of action currently being undertaken
+	inCombat           bool // flag True when initiating combat. Reset to false when target dies.
 	sprite_img         *ebiten.Image
-	movement_speed     float32
-	health             float32
-	armour             float32
-	damage_per_attack  float32
-	attacks_per_second float32
-	attack_success_pc  float32
-	attack_range       float32
+	movement_speed     float64 // Should be between 0 (no movement) and ~ 50. Higher values may be OP.
+	health             float64
+	armour             float64 // Should be between 0 (no reduction) and 1000 (full reduction in damage taken)
+	damage_per_attack  float64
+	attacks_per_second float64
+	attack_success_pc  float64 // Should be [0,1). Crit chance is calculated as the difference between 1 and attack_success_pc.
+	attack_range       float64
 	last_attack_time   int
-	target             *entity
+	target             []*entity
 	path               []coords
 }
 
+type CombatEntity interface {
+	// Choose a target
+	findEnemy() *entity
+	// Commence the combat sequence
+	initiateCombat()
+	receiveCombat()
+	// Perform combat
+	attackEnemy()
+	takeDamage()
+}
+
+// Game parameters
 const (
-	terrain_layer = 0
-	entity_layer  = 1
+	board_cells_High = 120 // Number of cells high.
+	board_cells_Wide = 100 // Number of cells wide. Pixel count == cells * spriteSize
+	spriteSize       = 16
+
+	// used by Ebiten to set canvas size
+	xScreen = (vp_cells_wide * spriteSize) + (2 * scroll_button_offset) + xMainMenuSize //1808 //xSize * spriteSize //
+	yScreen = (vp_cells_high * spriteSize) + (2 * scroll_button_offset)                 //960  //ySize * spriteSize
 )
 
+// Game map board structure
+// 3 dimensional array
+// x,y and layers for terrain, entities
 type board [2][board_cells_High][board_cells_Wide]int
 
+// Terrain keys
 const (
 	road                 = 1
 	grassland            = 2
@@ -67,15 +91,38 @@ var terrain_list = []int{road, grassland, sand, forest, water, cliff, wall}
 var terrain_map = map[int]*ebiten.Image{}
 
 const (
-	board_cells_High = 120 // Number of cells high.
-	board_cells_Wide = 100 // Number of cells wide. Pixel count == cells * spriteSize
-	spriteSize       = 16
-
-	// used by Ebiten to set canvas size
-	xScreen = (vp_cells_wide * spriteSize) + (2 * scroll_button_offset) + xMainMenuSize //1808 //xSize * spriteSize //
-	yScreen = (vp_cells_high * spriteSize) + (2 * scroll_button_offset)                 //960  //ySize * spriteSize
+	terrain_layer = 0
+	entity_layer  = 1
 )
 
+// Entity actions
+// TODO: This needs reworking to:
+// Combat (offensive/defensive, doesn't matter),
+// Move (to whatever target, including fleeing),
+// Rest (do nothing, sleep),
+// Action (eat, repair, gather resources - may need way to determin this is what they're doing - maybe separate numbers? Maybe tiers?)
+// How to chain actions (ie. move to resource, then gather resource)? Maybe what is below works, because the target is defined, the move is implied.
+const (
+	// TODO: set a default value (0) - what do we want these to do by default? Attack enemy base?
+
+	// 1. Self defence
+	actionDefence = 1
+	// 2. Feed
+	actionFeed = 2
+	// 3. Rest and recover
+	actionRest = 3
+	// 4. Local goal (attack enemy agents)
+	actionAttackEnemy = 4
+	// 5. Base repair
+	actionRepair = 5
+	// 6. Resource gathering
+	actionGatherResources = 6
+	// 7. Global goal (attack enemy base)
+	actionAttackEnemyBase = 7
+	// 8. Move
+)
+
+// Global variables
 var game_map board
 var img_minimap *ebiten.Image
 
@@ -102,6 +149,8 @@ type Game struct {
 	// Activated by holding down mouse button in single paint mode. Deactivated
 	// simply by releasing mouse button.
 	object_value int /* records what type of tile or object is placed on mouse click:
+	-2: spawner
+	-1: goal
 	"0: pathfinder"
 	"1: road terrain",
 	"2: grassland terrain",
@@ -167,12 +216,13 @@ func (g *Game) Update() error {
 	//parse_keyboard(&g.keylist)
 
 	// Update pathing for entities
-	for _, e := range entity_list {
-		if len(e.path) == 0 {
-			// TODO: investigate why pathing glitches when using go-routines.
-			e.pathfind(&game_map)
-		}
-	}
+	// TODO: Use same iteration to remove dead enemies.
+	// for _, e := range entity_list {
+	// 	if len(e.path) == 0 {
+	// 		// TODO: investigate why pathing glitches when using go-routines.
+	// 		e.pathfind(&game_map)
+	// 	}
+	// }
 
 	// Tick related updates
 	// g.tick++
@@ -180,6 +230,22 @@ func (g *Game) Update() error {
 	// 	g.tick = 0
 	// 	createMinimap(&game_map)
 	// }
+
+	for ind, ent := range entity_list {
+		// ent.brain()
+		if !ent.alive {
+			if ind < len(entity_list)-1 {
+				// entity is not the last in the array
+				arrayEnd := entity_list[ind+1:]
+				entity_list = entity_list[:ind]
+				entity_list = append(entity_list, arrayEnd...)
+
+			} else {
+				// entity is the last one in the array
+				entity_list = entity_list[:ind]
+			}
+		}
+	}
 
 	return nil
 }
@@ -306,24 +372,30 @@ func init() {
 
 	console.console_add("Images successfully loaded.")
 
-	// create sprite - first one in the array is the GOAL
+	// // create sprite - first one in the array is the GOAL
+	// // TODO: see about moving goal / enemy to separate array?
 	goal_entity := entity{
 		name:               "Goal",
 		loc:                GOAL,
 		mob_type:           0,
+		action:             actionDefence,
+		inCombat:           false,
+		alive:              true,
 		sprite_img:         img_goal,
 		movement_speed:     0,
-		health:             0,
-		armour:             0,
-		damage_per_attack:  0,
-		attacks_per_second: 0,
-		attack_success_pc:  0,
-		attack_range:       0,
+		health:             100000,
+		armour:             10000,
+		damage_per_attack:  20,
+		attacks_per_second: 5,
+		attack_success_pc:  0.95,
+		attack_range:       5,
 		last_attack_time:   0,
 		target:             nil,
 		path:               []coords{},
 	}
 	entity_list = append(entity_list, &goal_entity)
+	//go entity_list[0].brain()
+	go combatCycle()
 
 	console.console_add("Initialising menu...")
 	init_Menu()
@@ -334,23 +406,11 @@ func init() {
 	console.console_add("Init complete.")
 }
 
-func (e *entity) move_entity() {
-	for {
-		if len(e.path) > 0 {
-			// Set the location to the next waypoint, and remove that waypoint from the path list.
-			e.loc, e.path = e.path[len(e.path)-1], e.path[:len(e.path)-1]
-		}
-
-		// TODO: This is an arbitrary delay. Review.
-		time.Sleep(time.Duration(10000/e.movement_speed) * time.Millisecond)
-	}
-}
-
 func main() {
 	// Create a background go-routine that polls for user movement. Maybe set variable sleep time based on movement speed?
-	for _, char := range entity_list {
-		go char.move_entity()
-	}
+	// for _, char := range entity_list {
+	// 	go char.move_entity()
+	// }
 
 	ebiten.SetWindowSize(xScreen, yScreen)
 	ebiten.SetWindowTitle("Ebiten Test")

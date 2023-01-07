@@ -1,0 +1,14 @@
+"filename", "language", "Go", "Go Module File", "Go Checksum File", "comment", "blank", "total"
+"/home/creasote/Documents/Projects/Go/mapmaker/a-star.go", "Go", 81, 0, 0, 13, 11, 105
+"/home/creasote/Documents/Projects/Go/mapmaker/combat.go", "Go", 62, 0, 0, 29, 14, 105
+"/home/creasote/Documents/Projects/Go/mapmaker/entity.go", "Go", 25, 0, 0, 2, 5, 32
+"/home/creasote/Documents/Projects/Go/mapmaker/go.mod", "Go Module File", 0, 16, 0, 0, 4, 20
+"/home/creasote/Documents/Projects/Go/mapmaker/go.sum", "Go Checksum File", 0, 0, 79, 0, 1, 80
+"/home/creasote/Documents/Projects/Go/mapmaker/helper_fns.go", "Go", 21, 0, 0, 2, 4, 27
+"/home/creasote/Documents/Projects/Go/mapmaker/input.go", "Go", 119, 0, 0, 42, 21, 182
+"/home/creasote/Documents/Projects/Go/mapmaker/main.go", "Go", 270, 0, 0, 48, 51, 369
+"/home/creasote/Documents/Projects/Go/mapmaker/mapmaker.go", "Go", 120, 0, 0, 26, 22, 168
+"/home/creasote/Documents/Projects/Go/mapmaker/menu.go", "Go", 122, 0, 0, 53, 28, 203
+"/home/creasote/Documents/Projects/Go/mapmaker/minimap.go", "Go", 67, 0, 0, 18, 15, 100
+"/home/creasote/Documents/Projects/Go/mapmaker/viewport.go", "Go", 90, 0, 0, 28, 21, 139
+"Total", "-", 977, 16, 79, 261, 197, 1530
