@@ -23,9 +23,9 @@ type node struct {
 	loc      coords
 	prev     *node
 	terrain  int
-	cost     float32 // cost to get to this point, including it's own terrain cost
-	distance float32 // estimated distance to goal
-	estimate float32 // cost + estimated distance to goal
+	cost     float64 // cost to get to this point, including it's own terrain cost
+	distance float64 // estimated distance to goal
+	estimate float64 // cost + estimated distance to goal
 }
 
 type entity struct {
@@ -36,13 +36,13 @@ type entity struct {
 	action             int  // Index of action currently being undertaken
 	inCombat           bool // flag True when initiating combat. Reset to false when target dies.
 	sprite_img         *ebiten.Image
-	movement_speed     float32 // Should be between 0 (no movement) and ~ 50. Higher values may be OP.
-	health             float32
-	armour             float32 // Should be between 0 (no reduction) and 1000 (full reduction in damage taken)
-	damage_per_attack  float32
-	attacks_per_second float32
-	attack_success_pc  float32 // Should be [0,1). Crit chance is calculated as the difference between 1 and attack_success_pc.
-	attack_range       float32
+	movement_speed     float64 // Should be between 0 (no movement) and ~ 50. Higher values may be OP.
+	health             float64
+	armour             float64 // Should be between 0 (no reduction) and 1000 (full reduction in damage taken)
+	damage_per_attack  float64
+	attacks_per_second float64
+	attack_success_pc  float64 // Should be [0,1). Crit chance is calculated as the difference between 1 and attack_success_pc.
+	attack_range       float64
 	last_attack_time   int
 	target             []*entity
 	path               []coords

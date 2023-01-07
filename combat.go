@@ -8,10 +8,9 @@ import (
 )
 
 const (
-	critModifier         = 5    // Multiplier for crits. eg. If critModifier == 2, dmg done for crit is dmg*2.
-	armourDeratingFactor = 0.99 // Multiplier applied to armour when hit. Must be <= 1. eg. If armourDebuff == 0.99
+	critModifier         = 5     // Multiplier for crits. eg. If critModifier == 2, dmg done for crit is dmg*2.
+	armourDeratingFactor = 0.999 // Multiplier applied to armour when hit. Must be <= 1. eg. If armourDebuff == 0.99
 	// and an entity with 100 armour is hit, their armour is reduced to (100 * 0.99 = 99)
-	maxArmour = 1000
 )
 
 func combatCycle() {
@@ -62,7 +61,6 @@ func (self *entity) attackEnemy(foe *entity) {
 			self.applyDamage(foe)
 			if foe.alive == false {
 				// TODO: assign points for successful kill.
-				//self.target[0] = nil
 				if len(self.target) > 1 {
 					self.target = self.target[1:]
 				} else {
@@ -79,7 +77,7 @@ func (self *entity) attackEnemy(foe *entity) {
 // Calculates whether an attack is likely to succeed or not.
 // Factors in % to hit.
 func (s *entity) successfullyHits(f *entity) bool {
-	if s.attack_success_pc >= rand.Float32() {
+	if s.attack_success_pc >= rand.Float64() {
 		return true
 	}
 	return false
@@ -88,20 +86,17 @@ func (s *entity) successfullyHits(f *entity) bool {
 // Calculates the damage to be applied to the target.
 // Factors in enemy armour damage reduction.
 // Calls out to assess if attack is a Crit, and modifies dmg accordingly.
-func (s *entity) calculateDamage(f *entity) float32 {
-	base_dmg := s.damage_per_attack * float32(s.attackCrits(f))
-	armourDebuff := (maxArmour - f.armour) / maxArmour
+func (s *entity) calculateDamage(f *entity) float64 {
+	base_dmg := s.damage_per_attack * float64(s.attackCrits(f))
 
-	// calculate armour debuff. At armour > 1000, zero damage is inflicted.
-	armourDebuff = float32(math.Max(float64(armourDebuff), 0))
-
-	return base_dmg * armourDebuff
+	// Damage tends toward zero at high armour levels ( > 100), but should be non-zero at all levels.
+	return base_dmg - math.Pow(base_dmg, (f.armour/(f.armour+1)))
 }
 
 // Calculates whether an attack crits. Returns a multiplier to be applied to the
 // attack.
 func (s *entity) attackCrits(f *entity) int {
-	if (1 - s.attack_success_pc) >= rand.Float32() {
+	if (1 - s.attack_success_pc) >= rand.Float64() {
 		return critModifier
 	}
 	return 1
@@ -118,15 +113,13 @@ func (s *entity) applyDamage(f *entity) {
 // When being attacked, an entity my take damage. This function applies that
 // damage, and marks the entity as no longer alive if appropriate. Also
 // applies armour derating (damage reduces efficacy).
-func (me *entity) takeDamage(dmg float32) {
+func (me *entity) takeDamage(dmg float64) {
 	// Apply armour derate
 	me.armour = me.armour * armourDeratingFactor
 	me.health = me.health - dmg
 	console.console_add("Taking damage: " + fmt.Sprint(dmg))
 	console.console_add("Health remaining: " + fmt.Sprint(me.health))
 	if me.health <= 0 {
-		//me.alive = false
-		//me.target[0] = nil
 		me.die()
 	}
 }

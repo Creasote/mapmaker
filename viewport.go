@@ -45,15 +45,15 @@ func draw_ViewportEntities(screen *ebiten.Image) {
 			op.GeoM.Translate((float64(modified_x) * spriteSize), (float64(modified_y) * spriteSize))
 			screen.DrawImage(ent.sprite_img, op)
 			// If the entity has a path, draw the waypoints.
-			if len(ent.path) > 0 {
-				for _, waypoint := range ent.path {
-					if tf, wp_modfied_x, wp_modified_y := isInViewport(waypoint.x, waypoint.y); tf == true {
-						op := &ebiten.DrawImageOptions{}
-						op.GeoM.Translate((float64(wp_modfied_x) * spriteSize), (float64(wp_modified_y) * spriteSize))
-						screen.DrawImage(img_path, op)
-					}
-				}
-			}
+			// if len(ent.path) > 0 {
+			// 	for _, waypoint := range ent.path {
+			// 		if tf, wp_modfied_x, wp_modified_y := isInViewport(waypoint.x, waypoint.y); tf == true {
+			// 			op := &ebiten.DrawImageOptions{}
+			// 			op.GeoM.Translate((float64(wp_modfied_x) * spriteSize), (float64(wp_modified_y) * spriteSize))
+			// 			screen.DrawImage(img_path, op)
+			// 		}
+			// 	}
+			// }
 		}
 	}
 }

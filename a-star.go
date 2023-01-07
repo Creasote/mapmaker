@@ -4,9 +4,9 @@ import (
 	"math"
 )
 
-func estimate_distance(start, target coords) float32 {
+func estimate_distance(start, target coords) float64 {
 	est := math.Sqrt(math.Pow(float64(start.x-target.x), 2) + math.Pow(float64(start.y-target.y), 2))
-	return float32(est)
+	return est
 }
 
 func build_node(prev *node, x, y, terrain, x_t, y_t int) *node {
@@ -15,9 +15,9 @@ func build_node(prev *node, x, y, terrain, x_t, y_t int) *node {
 		loc:      coords{x, y},
 		prev:     prev,
 		terrain:  terrain,
-		cost:     prev.cost + float32(terrain),
+		cost:     prev.cost + float64(terrain),
 		distance: d,
-		estimate: prev.cost + float32(terrain) + d,
+		estimate: prev.cost + float64(terrain) + d,
 	}
 	return &n
 }
@@ -50,7 +50,7 @@ func (e *entity) pathfind(b *board) {
 				loc:      e.loc,
 				prev:     nil,
 				terrain:  b[terrain_layer][e.loc.y][e.loc.x],
-				cost:     float32(b[terrain_layer][e.loc.y][e.loc.x]),
+				cost:     float64(b[terrain_layer][e.loc.y][e.loc.x]),
 				distance: estimate_distance(e.loc, e.target[0].loc),
 				estimate: 0,
 			}
@@ -67,12 +67,12 @@ func (e *entity) pathfind(b *board) {
 						// validate nodes
 						if b[terrain_layer][y][x] < impassable_threshold {
 							if previously_visited, ok := closed_nodes[coords{x, y}]; ok {
-								if previously_visited.cost > open_nodes[seed_coords].cost+float32(b[terrain_layer][y][x]) {
+								if previously_visited.cost > open_nodes[seed_coords].cost+float64(b[terrain_layer][y][x]) {
 									// this is a better path to a previously investigated path
 									// move the visited node back out to OPEN, updating the predecessor and cost.
 									open_nodes[coords{x, y}] = closed_nodes[coords{x, y}]
 									open_nodes[coords{x, y}].prev = open_nodes[seed_coords]
-									open_nodes[coords{x, y}].cost = open_nodes[coords{x, y}].prev.cost + float32(b[terrain_layer][x][y])
+									open_nodes[coords{x, y}].cost = open_nodes[coords{x, y}].prev.cost + float64(b[terrain_layer][x][y])
 									delete(closed_nodes, coords{x, y})
 								} // else, if the previous visit resulted in  a lower cost, there's nothing to do
 							} else {

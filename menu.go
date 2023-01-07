@@ -43,6 +43,7 @@ var instructions = []string{
 	"R: randomise map",
 	"O: optimise map",
 	"P: place pathfinder",
+	"U: place spawner",
 	"X: place target",
 	"C: Get current coords",
 	" ",
