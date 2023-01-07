@@ -34,12 +34,35 @@ func placeEntity(x, y int) {
 
 // Place a spawner that regularly spawns new mobs.
 func placeSpawner(x, y int) {
+	// Generate a new entity for the spawner for drawing.
+	t := []*entity{}
+	t = append(t, entity_list[0])
+	entity_list = append(entity_list, &entity{
+		name:               "Spawner",
+		loc:                coords{x, y},
+		mob_type:           0,
+		alive:              true,
+		action:             actionDefence,
+		inCombat:           false,
+		sprite_img:         img_spawner,
+		movement_speed:     0,
+		health:             1,
+		armour:             0,
+		damage_per_attack:  0,
+		attacks_per_second: 0,
+		attack_success_pc:  0,
+		attack_range:       0,
+		last_attack_time:   0,
+		target:             nil,
+		path:               []coords{},
+	})
+
 	// Generate a pre-canned path for all spawned mobs
 	//precannedPath := pathfind(&game_map)
 	for {
-		t := []*entity{}
-		t = append(t, entity_list[0])
-
+		// t := []*entity{}
+		// t = append(t, entity_list[0])
+		// Generate a new spawned entity every given period.
 		entity_list = append(entity_list, &entity{
 			name:               "Spawned",
 			loc:                coords{x, y},

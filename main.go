@@ -267,7 +267,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 }
 
 var img_road, img_grassland, img_sand, img_forest, img_water, img_wall, img_cliff *ebiten.Image
-var img_player, img_path, img_goal *ebiten.Image
+var img_player, img_path, img_goal, img_spawner *ebiten.Image
 var img_menu_border_top, img_menu_border_left, img_menu_border_right, img_menu_border_bottom *ebiten.Image
 var img_menu_tl, img_menu_tr, img_menu_bl, img_menu_br *ebiten.Image
 var img_logo, img_button, img_button_pressed *ebiten.Image
@@ -315,6 +315,10 @@ func init() {
 		log.Fatal(err)
 	}
 	img_goal, _, err = ebitenutil.NewImageFromFile("./assets/goal.png")
+	if err != nil {
+		log.Fatal(err)
+	}
+	img_spawner, _, err = ebitenutil.NewImageFromFile("./assets/spawner.png")
 	if err != nil {
 		log.Fatal(err)
 	}
