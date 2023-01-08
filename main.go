@@ -124,7 +124,7 @@ const (
 
 // Global variables
 var game_map board
-var img_minimap *ebiten.Image
+var img_minimap, img_scoreboard *ebiten.Image
 
 var START = coords{0, 0}
 var GOAL = coords{18, 6}
@@ -138,6 +138,11 @@ var viewport = Viewport{
 	vp_x_offset: 0,
 	vp_y_offset: 0,
 }
+
+var score int                                        // Total score
+var sps = []int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}     // Records the scores per second. Store live score in sps[10], avg calculated over [0:9]
+var dps = []float64{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} // Records entries for the last 10 seconds. Store live score in dps[10], avg calculated over [0:9]
+var spawnCount int                                   // records total spawns
 
 type Game struct {
 	keylist    []ebiten.Key
@@ -260,6 +265,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	// Draw Menu
 	g.draw_Menu(screen)
 	//screen.draw_Menu()
+
+	// Draw Scoreboard
+	drawScoreboard(screen)
 
 	// Print processing rate for performance monitoring
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f", ebiten.ActualTPS())) //ebitenutil.DebugPrint(screen, "This is NOT a test.")
@@ -406,6 +414,9 @@ func init() {
 
 	// Init minimap
 	initMinimap()
+
+	// Init scoreboard (all scoreboard updating happens from here)
+	initScoreboard()
 
 	console.console_add("Init complete.")
 }
