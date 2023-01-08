@@ -57,6 +57,7 @@ func (self *entity) attackEnemy(foe *entity) {
 		self.last_attack_time = int(now)
 		if self.successfullyHits(foe) {
 			console.console_add("Successful hit.")
+			addScore(pointsSuccessfulHit)
 			// TODO: assign points for successful hit.
 			self.applyDamage(foe)
 			if foe.alive == false {
@@ -119,6 +120,7 @@ func (me *entity) takeDamage(dmg float64) {
 	me.health = me.health - dmg
 	console.console_add("Taking damage: " + fmt.Sprint(dmg))
 	console.console_add("Health remaining: " + fmt.Sprint(me.health))
+	dps[10] += dmg
 	if me.health <= 0 {
 		me.die()
 	}

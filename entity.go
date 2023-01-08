@@ -30,6 +30,8 @@ func placeEntity(x, y int) {
 		target:             t,
 		path:               []coords{},
 	})
+	spawnCount++
+	addScore(pointsManualSpawn)
 }
 
 // Place a spawner that regularly spawns new mobs.
@@ -82,7 +84,8 @@ func placeSpawner(x, y int) {
 			target:             t,
 			path:               []coords{},
 		})
-
+		spawnCount++
+		addScore(pointsAutoSpawn)
 		time.Sleep(5000 * time.Millisecond)
 	}
 }
