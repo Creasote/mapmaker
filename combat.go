@@ -22,9 +22,9 @@ func combatCycle() {
 			e.brain()
 		}
 		// TODO: Disabled until use case established.
-		// for _, e := range spawner_list {
-		// 	e.brain()
-		// }
+		for _, e := range spawner_list {
+			e.brain()
+		}
 		time.Sleep(100 * time.Millisecond)
 	}
 }
@@ -63,11 +63,9 @@ func (self *spawn) attackEnemy(foe *target) {
 	now := time.Now().UnixMilli()
 	// If sufficient time has passed, attack again.
 	if int(now) > self.last_attack_time+int(1000/self.attacks_per_second) {
-		console.console_add("Attacking.")
 		// Update last attack time, regardless of whether the attack is a success or not. (You don't get a freebie for missing)
 		self.last_attack_time = int(now)
 		if self.successfullyHits(foe) {
-			console.console_add("Successful hit.")
 			addScore(pointsSuccessfulHit)
 			// TODO: assign points for successful hit.
 			self.applyDamage(foe)

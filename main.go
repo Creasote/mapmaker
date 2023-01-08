@@ -303,7 +303,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	drawScoreboard(screen)
 
 	// Print processing rate for performance monitoring
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f", ebiten.ActualTPS())) //ebitenutil.DebugPrint(screen, "This is NOT a test.")
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f", ebiten.ActualTPS()))
 
 }
 
