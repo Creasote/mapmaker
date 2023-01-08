@@ -69,9 +69,9 @@ func updateScoreboard() {
 	scoreboardText[0] = fmt.Sprintf("Score: %d", score)
 	scoreboardText[1] = fmt.Sprintf("(per second: %0.1f)", scorePS)
 	scoreboardText[2] = fmt.Sprintf("DPS: %0.1f", dmgPS)
-	scoreboardText[3] = fmt.Sprintf("Spawns alive: %d", len(entity_list)-1)
-	scoreboardText[4] = fmt.Sprintf("Target health: %0.2f", entity_list[0].health)
-	scoreboardText[5] = fmt.Sprintf("Target armour: %0.2f", entity_list[0].armour)
+	scoreboardText[3] = fmt.Sprintf("Spawns alive: %d", len(spawn_list))
+	scoreboardText[4] = fmt.Sprintf("Target health: %0.2f", target_list[0].health)
+	scoreboardText[5] = fmt.Sprintf("Target armour: %0.2f", target_list[0].armour)
 
 	sb := createScoreboard()
 	for ind, txt := range scoreboardText {

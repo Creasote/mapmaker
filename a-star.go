@@ -40,7 +40,7 @@ func choose_node(pool map[coords]*node) coords {
 }
 
 // path find
-func (e *entity) pathfind(b *board) {
+func (e *spawn) pathfind(b *board) {
 	if e.target != nil {
 		if estimate_distance(e.loc, e.target[0].loc) > e.attack_range {
 			open_nodes := make(map[coords]*node)

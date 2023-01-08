@@ -28,7 +28,7 @@ func (g *Game) parse_mouseclick(x, y int) {
 			setGoal(x, y)
 			// Object Value (0) is a pathfinder entity.
 		} else if g.object_value == 0 {
-			placeEntity(x, y)
+			placeSpawn(x, y)
 			// All others are terrain types.
 		} else {
 			// Set game map array to value.
@@ -70,7 +70,7 @@ func (g *Game) parse_keyboard() {
 						// Goal location is demarked as a 1 on the entity layer.
 						// TODO: remove magic number.
 						if cell_val == 1 {
-							entity_list[0].loc = coords{x_ind, y_ind}
+							target_list[0].loc = coords{x_ind, y_ind}
 						}
 					}
 				}

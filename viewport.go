@@ -38,12 +38,13 @@ func draw_ViewportMap(screen *ebiten.Image) {
 	}
 }
 
-func draw_ViewportEntities(screen *ebiten.Image) {
-	for _, ent := range entity_list {
-		if tf, modified_x, modified_y := isInViewport(ent.loc.x, ent.loc.y); tf == true {
+func drawViewportSpawns(screen *ebiten.Image, entities []*spawn) {
+	for _, ent := range entities {
+		//if tf, modified_x, modified_y := isInViewport(ent.loc.x, ent.loc.y); tf == true {
+		if tf, modified_x, modified_y := isInViewport(ent.getLoc()); tf == true {
 			op := &ebiten.DrawImageOptions{}
 			op.GeoM.Translate((float64(modified_x) * spriteSize), (float64(modified_y) * spriteSize))
-			screen.DrawImage(ent.sprite_img, op)
+			screen.DrawImage(ent.getSprite(), op)
 			// If the entity has a path, draw the waypoints.
 			// if len(ent.path) > 0 {
 			// 	for _, waypoint := range ent.path {
@@ -54,6 +55,26 @@ func draw_ViewportEntities(screen *ebiten.Image) {
 			// 		}
 			// 	}
 			// }
+		}
+	}
+}
+
+func drawViewportSpawners(screen *ebiten.Image, entities []*spawner) {
+	for _, ent := range entities {
+		if tf, modified_x, modified_y := isInViewport(ent.loc.x, ent.loc.y); tf == true {
+			op := &ebiten.DrawImageOptions{}
+			op.GeoM.Translate((float64(modified_x) * spriteSize), (float64(modified_y) * spriteSize))
+			screen.DrawImage(ent.sprite_img, op)
+		}
+	}
+}
+
+func drawViewportTarget(screen *ebiten.Image, entities []*target) {
+	for _, ent := range entities {
+		if tf, modified_x, modified_y := isInViewport(ent.loc.x, ent.loc.y); tf == true {
+			op := &ebiten.DrawImageOptions{}
+			op.GeoM.Translate((float64(modified_x) * spriteSize), (float64(modified_y) * spriteSize))
+			screen.DrawImage(ent.sprite_img, op)
 		}
 	}
 }
@@ -135,4 +156,12 @@ func validateViewportClickOffsets(x, y int) (int, int) {
 	y = maxInt(y, 0)
 
 	return x, y
+}
+
+func (s *spawn) getLoc() (int, int) {
+	return s.loc.x, s.loc.y
+}
+
+func (s *spawn) getSprite() *ebiten.Image {
+	return s.sprite_img
 }
