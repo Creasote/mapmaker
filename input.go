@@ -179,6 +179,12 @@ func (g *Game) parse_keyboard() {
 				g.object_value = 99
 				console.console_add("Placing WALL obstacle")
 			}
+
+		case ebiten.KeyY:
+			// Required debounce
+			if inpututil.IsKeyJustPressed(k) {
+				upgradeSpawners(&spawnerRate)
+			}
 		}
 
 		// Remove the key we just tested against. Avoids reprosessing

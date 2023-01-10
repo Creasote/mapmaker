@@ -151,6 +151,7 @@ const (
 )
 
 // Global variables
+var gameOverFlag = false
 var game_map board
 var img_minimap, img_scoreboard *ebiten.Image
 
@@ -206,6 +207,9 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 }
 
 func (g *Game) Update() error {
+	if gameOverFlag {
+		endGame()
+	}
 	// Take mouse inputs
 	// Get the cursor position once to re-use during update:
 	cursor_x, cursor_y := ebiten.CursorPosition()
@@ -279,6 +283,22 @@ func (g *Game) Update() error {
 			} else {
 				// entity is the last one in the array
 				spawn_list = spawn_list[:ind]
+			}
+		}
+	}
+
+	for ind, ent := range spawner_list {
+		// ent.brain()
+		if !ent.alive {
+			if ind < len(spawner_list)-1 {
+				// entity is not the last in the array
+				arrayEnd := spawner_list[ind+1:]
+				spawner_list = spawner_list[:ind]
+				spawner_list = append(spawner_list, arrayEnd...)
+
+			} else {
+				// entity is the last one in the array
+				spawner_list = spawner_list[:ind]
 			}
 		}
 	}
@@ -455,10 +475,6 @@ func init() {
 }
 
 func main() {
-	// Create a background go-routine that polls for user movement. Maybe set variable sleep time based on movement speed?
-	// for _, char := range entity_list {
-	// 	go char.move_entity()
-	// }
 
 	ebiten.SetWindowSize(xScreen, yScreen)
 	ebiten.SetWindowTitle("Ebiten Test")
@@ -468,4 +484,11 @@ func main() {
 		panic(err)
 	}
 
+}
+
+func endGame() {
+	spawn_list = nil
+	spawner_list = nil
+	console.console_add("Game over")
+	gameOverFlag = false
 }

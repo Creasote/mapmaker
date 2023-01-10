@@ -14,7 +14,7 @@ const (
 )
 
 func combatCycle() {
-	for {
+	for !gameOverFlag {
 		for _, e := range spawn_list {
 			e.brain()
 		}

@@ -16,6 +16,7 @@ type spawn struct {
 	sprite_img         *ebiten.Image
 	movement_speed     float64 // Should be between 0 (no movement) and ~ 50. Higher values may be OP.
 	health             float64
+	energy             int     //
 	armour             float64 // Should be between 0 (no reduction) and 1000 (full reduction in damage taken)
 	damage_per_attack  float64
 	attacks_per_second float64
@@ -34,6 +35,7 @@ type spawner struct {
 	action           int // Index of action currently being undertaken
 	sprite_img       *ebiten.Image
 	health           float64
+	energy           int     // Expends 1 energy per spawn
 	armour           float64 // Should be between 0 (no reduction) and 1000 (full reduction in damage taken)
 	spawn_per_second float64
 	last_spawn_time  int
@@ -77,6 +79,7 @@ func placeSpawn(x, y int) {
 		sprite_img:         img_player,
 		movement_speed:     50,
 		health:             100,
+		energy:             100,
 		armour:             10,
 		damage_per_attack:  10,
 		attacks_per_second: 1,
@@ -92,6 +95,8 @@ func placeSpawn(x, y int) {
 
 // Place a spawner that regularly spawns new mobs.
 func placeSpawner(x, y int) {
+	// Pay for your goods first
+	score = score - power(spawnerBaseCost, len(spawner_list))
 	// Generate a new entity for the spawner for drawing.
 	t := []*target{}
 	t = append(t, target_list[0])
@@ -103,41 +108,14 @@ func placeSpawner(x, y int) {
 		alive:            true,
 		action:           actionAttackEnemyBase,
 		sprite_img:       img_spawner,
-		health:           1,
+		health:           100,
+		energy:           int(spawnerMaxOutput.value[spawnerMaxOutput.tier]),
 		armour:           0,
-		spawn_per_second: 0.2,
+		spawn_per_second: spawnerRate.value[spawnerRate.tier],
 		target:           t,
 		path:             []coords{},
 	})
 	spawner_list[0].pathfind(&game_map)
-
-	// Generate a pre-canned path for all spawned mobs
-	//precannedPath := pathfind(&game_map)
-	// for {
-	// 	// Generate a new spawned entity every given period.
-	// 	spawn_list = append(spawn_list, &spawn{
-	// 		name:               "Spawned",
-	// 		loc:                coords{x, y},
-	// 		mob_type:           0,
-	// 		action:             actionAttackEnemyBase,
-	// 		inCombat:           false,
-	// 		alive:              true,
-	// 		sprite_img:         img_player,
-	// 		movement_speed:     50,
-	// 		health:             100,
-	// 		armour:             10,
-	// 		damage_per_attack:  10,
-	// 		attacks_per_second: 1,
-	// 		attack_success_pc:  0.75,
-	// 		attack_range:       2,
-	// 		last_attack_time:   0,
-	// 		target:             t,
-	// 		path:               []coords{},
-	// 	})
-	// 	spawnCount++
-	// 	addScore(pointsAutoSpawn)
-	// 	time.Sleep(5000 * time.Millisecond)
-	// }
 }
 
 // Sets the Goal location.
@@ -176,7 +154,12 @@ func (me *spawn) brain() {
 	// 5. Base repair
 	// 6. Resource gathering
 	// 7. Global goal (attack enemy base)
-
+	if !(me.energy > 0) {
+		me.health--
+	}
+	if !(me.health > 0) {
+		me.die()
+	}
 	switch me.action {
 	case actionDefence:
 		if len(me.target) > 0 {
@@ -200,6 +183,12 @@ func (me *spawn) brain() {
 
 func (me *spawner) brain() {
 	//TODO: what actions does a spawner have? Just spawning?
+	if !(me.energy > 0) {
+		me.health--
+	}
+	if !(me.health > 0) {
+		me.die()
+	}
 	switch me.action {
 	case actionAttackEnemyBase:
 		now := time.Now().UnixMilli()
@@ -215,6 +204,7 @@ func (me *spawner) brain() {
 				sprite_img:         img_player,
 				movement_speed:     50,
 				health:             100,
+				energy:             100,
 				armour:             10,
 				damage_per_attack:  10,
 				attacks_per_second: 1,
@@ -226,7 +216,10 @@ func (me *spawner) brain() {
 			})
 			spawnCount++
 			addScore(pointsAutoSpawn)
+			me.energy--
 		}
+	default:
+		// ruh-roh
 	}
 
 }
@@ -303,10 +296,16 @@ func (me *target) die() {
 	me.alive = false
 	me.target = nil
 	me.action = actionRest
+	gameOverFlag = true
 }
 
 func (me *spawn) die() {
 	me.alive = false
 	me.target = nil
+	me.action = actionRest
+}
+
+func (me *spawner) die() {
+	me.alive = false
 	me.action = actionRest
 }
