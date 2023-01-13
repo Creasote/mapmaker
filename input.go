@@ -183,7 +183,7 @@ func (g *Game) parse_keyboard() {
 		case ebiten.KeyY:
 			// Required debounce
 			if inpututil.IsKeyJustPressed(k) {
-				upgradeSpawners(&spawnerRate)
+				doUpgrade(&spawnerRate)
 			}
 		}
 

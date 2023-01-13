@@ -27,9 +27,9 @@ TODO: mini-graph dps
 */
 
 // Points constants for scoring
-const (
+var (
 	pointsGotToGoal     = 1
-	pointsSuccessfulHit = 1
+	pointsSuccessfulHit = 10
 	pointsManualSpawn   = 1 // Mobs spawned via clicking
 	pointsAutoSpawn     = 2 // Mobs spawned via spawner
 )

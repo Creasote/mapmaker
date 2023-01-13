@@ -172,7 +172,7 @@ var viewport = Viewport{
 }
 
 var score int                                          // Total score
-var sps = []int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}       // Records the scores per second. Store live score in sps[10], avg calculated over [0:9]
+var sps = [11]int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}     // Records the scores per second. Store live score in sps[10], avg calculated over [0:9]
 var dps = [11]float64{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} // Records entries for the last 10 seconds. Store live score in dps[10], avg calculated over [0:9]
 var spawnCount int                                     // records total spawns
 

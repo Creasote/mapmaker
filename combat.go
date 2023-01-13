@@ -130,6 +130,7 @@ func (me *target) takeDamage(dmg float64) {
 	console.console_add("Taking damage: " + fmt.Sprint(dmg))
 	console.console_add("Health remaining: " + fmt.Sprint(me.health))
 	dps[0] += dmg
+	addScore(int(dmg))
 	if me.health <= 0 {
 		me.die()
 	}
@@ -186,7 +187,7 @@ func (self *target) attackEnemy(foe *spawn) {
 		self.last_attack_time = int(now)
 		if self.successfullyHits(foe) {
 			console.console_add("Successful hit.")
-			addScore(pointsSuccessfulHit)
+			//addScore(pointsSuccessfulHit)
 			// TODO: assign points for successful hit.
 			self.applyDamage(foe)
 			if foe.alive == false {
@@ -249,7 +250,7 @@ func (me *spawn) takeDamage(dmg float64) {
 	me.health = me.health - dmg
 	console.console_add("Taking damage: " + fmt.Sprint(dmg))
 	console.console_add("Health remaining: " + fmt.Sprint(me.health))
-	dps[0] += dmg
+	//dps[0] += dmg
 	if me.health <= 0 {
 		me.die()
 	}
