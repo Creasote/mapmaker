@@ -129,7 +129,7 @@ func (me *target) takeDamage(dmg float64) {
 	me.health = me.health - dmg
 	console.console_add("Taking damage: " + fmt.Sprint(dmg))
 	console.console_add("Health remaining: " + fmt.Sprint(me.health))
-	dps[10] += dmg
+	dps[0] += dmg
 	if me.health <= 0 {
 		me.die()
 	}
@@ -249,7 +249,7 @@ func (me *spawn) takeDamage(dmg float64) {
 	me.health = me.health - dmg
 	console.console_add("Taking damage: " + fmt.Sprint(dmg))
 	console.console_add("Health remaining: " + fmt.Sprint(me.health))
-	dps[10] += dmg
+	dps[0] += dmg
 	if me.health <= 0 {
 		me.die()
 	}

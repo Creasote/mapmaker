@@ -52,7 +52,7 @@ var spawnArmour = upgrade{}
 
 // SPAWNER upgrades
 
-// Spawner rate of spawning
+// Spawner rate of spawning (measured as spawns per second)
 var spawnerRate = upgrade{
 	field: 0,
 	tier:  0,
