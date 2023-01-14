@@ -210,6 +210,15 @@ func (g *Game) Update() error {
 	if gameOverFlag {
 		endGame()
 	}
+
+	//TODO: implement button enable/disable on budget
+	for i, b := range buttonList {
+		if b.action.getCost(1) < score {
+			buttonList[i].enabled = true
+		} else {
+			buttonList[i].enabled = false
+		}
+	}
 	// Take mouse inputs
 	// Get the cursor position once to re-use during update:
 	cursor_x, cursor_y := ebiten.CursorPosition()
@@ -253,23 +262,6 @@ func (g *Game) Update() error {
 	// Take keyboard inputs
 	g.keylist = inpututil.AppendPressedKeys(g.keylist[:0])
 	g.parse_keyboard()
-	//parse_keyboard(&g.keylist)
-
-	// Update pathing for entities
-	// TODO: Use same iteration to remove dead enemies.
-	// for _, e := range entity_list {
-	// 	if len(e.path) == 0 {
-	// 		// TODO: investigate why pathing glitches when using go-routines.
-	// 		e.pathfind(&game_map)
-	// 	}
-	// }
-
-	// Tick related updates
-	// g.tick++
-	// if g.tick > 60 {
-	// 	g.tick = 0
-	// 	createMinimap(&game_map)
-	// }
 
 	for ind, ent := range spawn_list {
 		// ent.brain()
@@ -288,7 +280,6 @@ func (g *Game) Update() error {
 	}
 
 	for ind, ent := range spawner_list {
-		// ent.brain()
 		if !ent.alive {
 			if ind < len(spawner_list)-1 {
 				// entity is not the last in the array

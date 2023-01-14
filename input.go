@@ -111,6 +111,7 @@ func (g *Game) parse_keyboard() {
 			}
 
 			// Spawner
+			// TODO: add interface.
 		case ebiten.KeyU:
 			// Required debounce
 			if inpututil.IsKeyJustPressed(k) {

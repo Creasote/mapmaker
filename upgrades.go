@@ -7,7 +7,7 @@ package main
 const tierBounds = 6 // there are 7 tiers
 
 const (
-	spawnerBaseCost = 10
+	spawnerBaseCost = 100
 )
 
 type upgrade struct {
@@ -84,7 +84,7 @@ var spawnerMaxOutput = upgrade{
 	field: 11,
 	tier:  0,
 	cost:  []int{0, 5000, 10000, 20000, 50000, 100000, 1000000},
-	value: []float64{10, 25, 50, 100, 150, 250, 500},
+	value: []float64{100000000, 25, 50, 100, 150, 250, 500},
 }
 
 func doUpgrade(up *upgrade) {
@@ -125,4 +125,12 @@ func doUpgrade(up *upgrade) {
 		}
 	}
 
+}
+
+func (up upgrade) getCost(offset int) int {
+	return up.cost[up.tier+offset]
+}
+
+func (up upgrade) do() {
+	doUpgrade(&up)
 }

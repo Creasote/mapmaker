@@ -96,26 +96,28 @@ func placeSpawn(x, y int) {
 // Place a spawner that regularly spawns new mobs.
 func placeSpawner(x, y int) {
 	// Pay for your goods first
-	score = score - power(spawnerBaseCost, len(spawner_list))
-	// Generate a new entity for the spawner for drawing.
-	t := []*target{}
-	t = append(t, target_list[0])
+	if score > power(spawnerBaseCost, len(spawner_list)) { //(spawnerBaseCost * len(spawner_list)) {
+		score = score - power(spawnerBaseCost, len(spawner_list)) //(spawnerBaseCost * len(spawner_list))
+		// Generate a new entity for the spawner for drawing.
+		t := []*target{}
+		t = append(t, target_list[0])
 
-	spawner_list = append(spawner_list, &spawner{
-		name:             "Spawner",
-		loc:              coords{x, y},
-		mob_type:         0,
-		alive:            true,
-		action:           actionAttackEnemyBase,
-		sprite_img:       img_spawner,
-		health:           1,
-		energy:           int(spawnerMaxOutput.value[spawnerMaxOutput.tier]),
-		armour:           0,
-		spawn_per_second: spawnerRate.value[spawnerRate.tier],
-		target:           t,
-		path:             []coords{},
-	})
-	spawner_list[0].pathfind(&game_map)
+		spawner_list = append(spawner_list, &spawner{
+			name:             "Spawner",
+			loc:              coords{x, y},
+			mob_type:         0,
+			alive:            true,
+			action:           actionAttackEnemyBase,
+			sprite_img:       img_spawner,
+			health:           1,
+			energy:           int(spawnerMaxOutput.value[spawnerMaxOutput.tier]),
+			armour:           0,
+			spawn_per_second: spawnerRate.value[spawnerRate.tier],
+			target:           t,
+			path:             []coords{},
+		})
+		spawner_list[0].pathfind(&game_map)
+	}
 }
 
 // Sets the Goal location.
