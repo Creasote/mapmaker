@@ -27,9 +27,9 @@ TODO: mini-graph dps
 */
 
 // Points constants for scoring
-const (
+var (
 	pointsGotToGoal     = 1
-	pointsSuccessfulHit = 1
+	pointsSuccessfulHit = 10
 	pointsManualSpawn   = 1 // Mobs spawned via clicking
 	pointsAutoSpawn     = 2 // Mobs spawned via spawner
 )
@@ -56,12 +56,12 @@ func updateScoreboard() {
 	//statsPSUpdate()
 	//for {
 	scoreTally := 0
-	for _, s := range sps[0:10] {
+	for _, s := range sps[1:11] {
 		scoreTally += s
 	}
 	scorePS = float64(scoreTally) / 10
 	dmgTally := 0.0
-	for _, d := range dps[0:10] {
+	for _, d := range dps[1:11] {
 		dmgTally += d
 	}
 	dmgPS = dmgTally / 10
@@ -69,9 +69,9 @@ func updateScoreboard() {
 	scoreboardText[0] = fmt.Sprintf("Score: %d", score)
 	scoreboardText[1] = fmt.Sprintf("(per second: %0.1f)", scorePS)
 	scoreboardText[2] = fmt.Sprintf("DPS: %0.1f", dmgPS)
-	scoreboardText[3] = fmt.Sprintf("Spawns alive: %d", len(entity_list)-1)
-	scoreboardText[4] = fmt.Sprintf("Target health: %0.2f", entity_list[0].health)
-	scoreboardText[5] = fmt.Sprintf("Target armour: %0.2f", entity_list[0].armour)
+	scoreboardText[3] = fmt.Sprintf("Spawns alive: %d", len(spawn_list))
+	scoreboardText[4] = fmt.Sprintf("Target health: %0.2f", target_list[0].health)
+	scoreboardText[5] = fmt.Sprintf("Target armour: %0.2f", target_list[0].armour)
 
 	sb := createScoreboard()
 	for ind, txt := range scoreboardText {
@@ -91,15 +91,17 @@ func createScoreboard() *ebiten.Image {
 
 func statsPSUpdate() {
 	for {
-		dps = dps[1:]
-		dps = append(dps, 0)
+		for i := len(dps) - 1; i > 0; i-- {
+			dps[i] = dps[i-1]
+		}
+		dps[0] = 0
 
-		// Do the shift, which locks in the final value of the last second (sps[10] now becomes locked at sps[9], which can then be written out
+		// Do the shift, which locks in the final value of the last second (sps[0] now becomes locked at sps[1], which can then be written out
 		// to the the tally)
-		sps = sps[1:]
-		sps = append(sps, 0)
-		//score += sps[10]
-		//score = 0
+		for i := len(sps) - 1; i > 0; i-- {
+			sps[i] = sps[i-1]
+		}
+		sps[0] = 0
 		time.Sleep(1000 * time.Millisecond)
 	}
 }
@@ -114,5 +116,5 @@ func drawScoreboard(screen *ebiten.Image) {
 
 func addScore(s int) {
 	score += s
-	sps[10] += s
+	sps[0] += s
 }

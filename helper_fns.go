@@ -24,3 +24,17 @@ func sliceContains(s []coords, v coords) bool {
 	}
 	return false
 }
+
+func power(base, exp int) int {
+	val := base
+	if exp == 0 {
+		return 1
+	} else {
+		exp++
+		for i := 2; i < exp; i++ {
+			val = val * base
+		}
+	}
+
+	return val
+}

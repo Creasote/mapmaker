@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"golang.org/x/image/font"
@@ -16,6 +17,34 @@ type Console struct {
 	max_rows     int
 	font_size    int
 	print_height int
+}
+
+type Button struct {
+	enabled       bool // Is this button available for use?
+	active        bool // Is the button the currently selected button?
+	img           *ebiten.Image
+	height, width int
+	actionID      int // Used to switch-case the appropriate action from the menu click parser
+	action        Action
+}
+
+// type Menu struct{
+// 	button *Button
+// }
+
+type Action interface {
+	getCost(int) int
+	do()
+}
+
+type menuZoneDescriptor struct {
+	x, y          float64 // Absolute x and y coords for the START of the menu zone.
+	height, width int
+}
+type menuStructureDescriptor struct {
+	loc      string
+	actionID int
+	action   Action
 }
 
 const (
@@ -32,12 +61,29 @@ const (
 	yInstructions   = 200
 )
 
-// var menu_layout = [][]*ebiten.Image{
-// 	{img_button},
-// 	{img_button},
-// 	{img_button},
-// 	{img_button, img_button},
-// }
+var buttonList []*Button
+var img_btnPlaceSpawn, img_btnSpawnArmour, img_btnSpawnAttackSpeed, img_btnSpawnDmg, img_btnSpawnHP, img_btnSpawnToHit *ebiten.Image
+var img_btnPlaceSpawner, img_btnSpawnerOutput, img_btnSpawnerRate *ebiten.Image
+var img_btnFade *ebiten.Image
+
+var menuZoneFile = []menuZoneDescriptor{
+	{float64(xMainMenuOffset + spriteSize), float64(spriteSize), 128, 128}, // Logo
+	{float64(xMainMenuOffset + spriteSize), float64(200), 32 * 8, 80},      // Buttons
+	{float64(xMainMenuOffset + spriteSize), float64(540), 14 * 30, 80},     // Console
+	{float64(xMainMenuOffset + spriteSize), float64(700), 32, 80},          // Minimap
+}
+
+var menuStructureFile = []menuStructureDescriptor{
+	{"./assets/menu/place_spawner_button.png", 10, spawnerRate},
+	//{"./assets/menu/place_spawn_button.png", 0},
+	{"./assets/menu/spawn_armour_upgrade_button.png", 1, spawnArmour},
+	{"./assets/menu/spawn_attack_speed_upgrade_button.png", 2, spawnAttackRate},
+	{"./assets/menu/spawn_dmg_upgrade_button.png", 3, spawnDmg},
+	{"./assets/menu/spawn_hp_upgrade_button.png", 4, spawnHealth},
+	{"./assets/menu/spawn_tohit_upgrade_button.png", 5, spawnToHit},
+	{"./assets/menu/spawner_output_upgrade_button.png", 11, spawnerMaxOutput},
+	{"./assets/menu/spawner_rate_upgrade_button.png", 12, spawnerRate},
+}
 
 var instructions = []string{
 	"R: randomise map",
@@ -82,37 +128,41 @@ func init_Menu() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// Call the fns to build an interable list of buttons, which are then drawn in the update method
+	// Requires a pre-defined menu structure descriptor
+	buttonList = buildButtonList(menuStructureFile)
+
+	img_btnFade = ebiten.NewImage(80, 32)
+	img_btnFade.Fill(&color.RGBA{10, 10, 10, 125})
+
 }
 
-// Draw button helper function.
-// Takes the x and y position of the buttons,
-// within the menu (not screen pixels), 1 INDEX (not zero indexed!)
-// ie. the first button on the left would be 1,1 (x,y).
-// The first button on the second row would be (1,2).
-// The second button on the third row would be (2,3).
-// func draw_button(screen, button_img *ebiten.Image, x, y int) {
-// 	op := &ebiten.DrawImageOptions{}
-// 	op.GeoM.Translate(float64(xButtonOffset+(x-1)*(button_img.Bounds().Size().X)), float64(yButtonOffset+(y-1)*(button_img.Bounds().Size().Y)))
-// 	//op.GeoM.Translate(float64(xButtonOffset), float64(yButtonOffset+(y-1*button_img.Bounds().Size().Y)))
-// 	//fmt.Println("Button width: ", (x-1)*(button_img.Bounds().Size().X))
-// 	screen.DrawImage(button_img, op)
-// }
+func buildButtonList(msf []menuStructureDescriptor) []*Button {
+	var bl []*Button
 
-// func draw_buttons(screen *ebiten.Image, menu_array [][]*ebiten.Image) {
-// 	for row_ind, row_buttons := range menu_array {
-// 		fmt.Print("Row: ", row_ind)
-// 		for col_ind, butts := range row_buttons {
-// 			// if the column is > 0, shift this button right by the size of the previous button + some margin
-// 			fmt.Println(" Col: ", col_ind)
-// 			op := &ebiten.DrawImageOptions{}
-// 			//op.GeoM.Translate(float64(xButtonOffset+(col_ind)*(butts.Bounds().Size().X)), float64(yButtonOffset+(row_ind)*(butts.Bounds().Size().Y)))
-// 			op.GeoM.Translate(float64(xButtonOffset), float64(yButtonOffset))
-// 			screen.DrawImage(butts, op)
-// 		}
-// 	}
-// 	//op.GeoM.Translate(float64(xButtonOffset), float64(yButtonOffset+(y-1*button_img.Bounds().Size().Y)))
-// 	//fmt.Println("Button width: ", (x-1)*(button_img.Bounds().Size().X))
-// }
+	for _, b := range msf {
+		if err, btn := addBtn(b.loc, b.actionID, b.action); err == nil {
+			bl = append(bl, btn)
+		}
+	}
+	return bl
+}
+
+func addBtn(l string, actionid int, action Action) (error, *Button) {
+	i, _, err := ebitenutil.NewImageFromFile(l)
+
+	b := &Button{
+		enabled:  false,
+		active:   false,
+		img:      i,
+		height:   32,
+		width:    80,
+		actionID: actionid,
+		action:   action,
+	}
+	return err, b
+}
 
 //func (screen *ebiten.Image) draw_Menu() {
 func (g *Game) draw_Menu(screen *ebiten.Image) {
@@ -169,8 +219,16 @@ func (g *Game) draw_Menu(screen *ebiten.Image) {
 	//draw_buttons(screen, menu_layout)
 
 	// Draw instuctions:
-	for i, inst := range instructions {
-		text.Draw(screen, inst+string('\n'), mplusNormalFont, xInstructions, yInstructions+(i*console.print_height), color.White)
+	// for i, inst := range instructions {
+	// 	text.Draw(screen, inst+string('\n'), mplusNormalFont, xInstructions, yInstructions+(i*console.print_height), color.White)
+	// }
+	for i, btn := range buttonList {
+		op = &ebiten.DrawImageOptions{}
+		op.GeoM.Translate(menuZoneFile[1].x, (menuZoneFile[1].y + float64(i*btn.height)))
+		screen.DrawImage(btn.img, op)
+		if !btn.enabled {
+			screen.DrawImage(img_btnFade, op)
+		}
 	}
 
 	// Draw console
@@ -201,3 +259,5 @@ func (c *Console) console_add(s string) {
 // make slice available to draw method
 
 // take mouse inputs
+
+//func (a Action)

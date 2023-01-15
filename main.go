@@ -28,35 +28,63 @@ type node struct {
 	estimate float64 // cost + estimated distance to goal
 }
 
-type entity struct {
-	name               string
-	loc                coords
-	mob_type           int
-	alive              bool
-	action             int  // Index of action currently being undertaken
-	inCombat           bool // flag True when initiating combat. Reset to false when target dies.
-	sprite_img         *ebiten.Image
-	movement_speed     float64 // Should be between 0 (no movement) and ~ 50. Higher values may be OP.
-	health             float64
-	armour             float64 // Should be between 0 (no reduction) and 1000 (full reduction in damage taken)
-	damage_per_attack  float64
-	attacks_per_second float64
-	attack_success_pc  float64 // Should be [0,1). Crit chance is calculated as the difference between 1 and attack_success_pc.
-	attack_range       float64
-	last_attack_time   int
-	target             []*entity
-	path               []coords
-}
+// type spawn struct {
+// 	name               string
+// 	loc                coords
+// 	mob_type           int
+// 	alive              bool
+// 	action             int  // Index of action currently being undertaken
+// 	inCombat           bool // flag True when initiating combat. Reset to false when target dies.
+// 	sprite_img         *ebiten.Image
+// 	movement_speed     float64 // Should be between 0 (no movement) and ~ 50. Higher values may be OP.
+// 	health             float64
+// 	armour             float64 // Should be between 0 (no reduction) and 1000 (full reduction in damage taken)
+// 	damage_per_attack  float64
+// 	attacks_per_second float64
+// 	attack_success_pc  float64 // Should be [0,1). Crit chance is calculated as the difference between 1 and attack_success_pc.
+// 	attack_range       float64
+// 	last_attack_time   int
+// 	target             []*spawn
+// 	path               []coords
+// }
 
-type CombatEntity interface {
-	// Choose a target
-	findEnemy() *entity
-	// Commence the combat sequence
-	initiateCombat()
-	receiveCombat()
-	// Perform combat
-	attackEnemy()
-	takeDamage()
+// type spawner struct {
+// 	name     string
+// 	loc      coords
+// 	mob_type int
+// 	alive    bool
+// 	action   int // Index of action currently being undertaken
+// 	//inCombat           bool // flag True when initiating combat. Reset to false when target dies.
+// 	sprite_img *ebiten.Image
+// 	//movement_speed     float64 // Should be between 0 (no movement) and ~ 50. Higher values may be OP.
+// 	health float64
+// 	armour float64 // Should be between 0 (no reduction) and 1000 (full reduction in damage taken)
+// 	//damage_per_attack  float64
+// 	//attacks_per_second float64
+// 	//attack_success_pc  float64 // Should be [0,1). Crit chance is calculated as the difference between 1 and attack_success_pc.
+// 	//attack_range       float64
+// 	//last_attack_time   int
+// 	target []*spawn
+// 	path   []coords
+// }
+
+// type CombatEntity interface {
+// 	// Choose a target
+// 	findEnemy() *entity
+// 	// Commence the combat sequence
+// 	initiateCombat()
+// 	receiveCombat()
+// 	// Perform combat
+// 	attackEnemy()
+// 	takeDamage()
+// }
+
+type ThoughtfulEntity interface {
+	brain()
+	getLoc() (int, int)
+	getSprite() *ebiten.Image
+	//loc coords
+	//sprite_img *ebiten.Image
 }
 
 // Game parameters
@@ -123,13 +151,17 @@ const (
 )
 
 // Global variables
+var gameOverFlag = false
 var game_map board
 var img_minimap, img_scoreboard *ebiten.Image
 
 var START = coords{0, 0}
 var GOAL = coords{18, 6}
 
-var entity_list []*entity
+var spawn_list []*spawn
+var spawner_list []*spawner
+var target_list []*target
+var entity_list []*ThoughtfulEntity
 
 var console Console
 var mplusNormalFont font.Face
@@ -139,10 +171,10 @@ var viewport = Viewport{
 	vp_y_offset: 0,
 }
 
-var score int                                        // Total score
-var sps = []int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}     // Records the scores per second. Store live score in sps[10], avg calculated over [0:9]
-var dps = []float64{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} // Records entries for the last 10 seconds. Store live score in dps[10], avg calculated over [0:9]
-var spawnCount int                                   // records total spawns
+var score int                                          // Total score
+var sps = [11]int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}     // Records the scores per second. Store live score in sps[10], avg calculated over [0:9]
+var dps = [11]float64{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} // Records entries for the last 10 seconds. Store live score in dps[10], avg calculated over [0:9]
+var spawnCount int                                     // records total spawns
 
 type Game struct {
 	keylist    []ebiten.Key
@@ -175,6 +207,18 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 }
 
 func (g *Game) Update() error {
+	if gameOverFlag {
+		endGame()
+	}
+
+	//TODO: implement button enable/disable on budget
+	for i, b := range buttonList {
+		if b.action.getCost(1) < score {
+			buttonList[i].enabled = true
+		} else {
+			buttonList[i].enabled = false
+		}
+	}
 	// Take mouse inputs
 	// Get the cursor position once to re-use during update:
 	cursor_x, cursor_y := ebiten.CursorPosition()
@@ -218,36 +262,34 @@ func (g *Game) Update() error {
 	// Take keyboard inputs
 	g.keylist = inpututil.AppendPressedKeys(g.keylist[:0])
 	g.parse_keyboard()
-	//parse_keyboard(&g.keylist)
 
-	// Update pathing for entities
-	// TODO: Use same iteration to remove dead enemies.
-	// for _, e := range entity_list {
-	// 	if len(e.path) == 0 {
-	// 		// TODO: investigate why pathing glitches when using go-routines.
-	// 		e.pathfind(&game_map)
-	// 	}
-	// }
-
-	// Tick related updates
-	// g.tick++
-	// if g.tick > 60 {
-	// 	g.tick = 0
-	// 	createMinimap(&game_map)
-	// }
-
-	for ind, ent := range entity_list {
+	for ind, ent := range spawn_list {
 		// ent.brain()
 		if !ent.alive {
-			if ind < len(entity_list)-1 {
+			if ind < len(spawn_list)-1 {
 				// entity is not the last in the array
-				arrayEnd := entity_list[ind+1:]
-				entity_list = entity_list[:ind]
-				entity_list = append(entity_list, arrayEnd...)
+				arrayEnd := spawn_list[ind+1:]
+				spawn_list = spawn_list[:ind]
+				spawn_list = append(spawn_list, arrayEnd...)
 
 			} else {
 				// entity is the last one in the array
-				entity_list = entity_list[:ind]
+				spawn_list = spawn_list[:ind]
+			}
+		}
+	}
+
+	for ind, ent := range spawner_list {
+		if !ent.alive {
+			if ind < len(spawner_list)-1 {
+				// entity is not the last in the array
+				arrayEnd := spawner_list[ind+1:]
+				spawner_list = spawner_list[:ind]
+				spawner_list = append(spawner_list, arrayEnd...)
+
+			} else {
+				// entity is the last one in the array
+				spawner_list = spawner_list[:ind]
 			}
 		}
 	}
@@ -260,7 +302,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	draw_ViewportMap(screen)
 
 	// Draw each of the entities
-	draw_ViewportEntities(screen)
+	drawViewportSpawners(screen, spawner_list)
+	drawViewportTarget(screen, target_list)
+	drawViewportSpawns(screen, spawn_list)
 
 	// Draw Menu
 	g.draw_Menu(screen)
@@ -270,7 +314,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	drawScoreboard(screen)
 
 	// Print processing rate for performance monitoring
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f", ebiten.ActualTPS())) //ebitenutil.DebugPrint(screen, "This is NOT a test.")
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f", ebiten.ActualTPS()))
 
 }
 
@@ -386,26 +430,26 @@ func init() {
 
 	// // create sprite - first one in the array is the GOAL
 	// // TODO: see about moving goal / enemy to separate array?
-	goal_entity := entity{
-		name:               "Goal",
-		loc:                GOAL,
-		mob_type:           0,
-		action:             actionDefence,
-		inCombat:           false,
-		alive:              true,
-		sprite_img:         img_goal,
-		movement_speed:     0,
-		health:             100000,
-		armour:             10000,
+	goal_entity := target{
+		name:       "Goal",
+		loc:        GOAL,
+		mob_type:   0,
+		action:     actionDefence,
+		inCombat:   false,
+		alive:      true,
+		sprite_img: img_goal,
+		//movement_speed:     0,
+		health:             10000000,
+		armour:             100000,
 		damage_per_attack:  20,
 		attacks_per_second: 5,
 		attack_success_pc:  0.95,
 		attack_range:       5,
 		last_attack_time:   0,
 		target:             nil,
-		path:               []coords{},
+		//path:               []coords{},
 	}
-	entity_list = append(entity_list, &goal_entity)
+	target_list = append(target_list, &goal_entity)
 	//go entity_list[0].brain()
 	go combatCycle()
 
@@ -422,10 +466,6 @@ func init() {
 }
 
 func main() {
-	// Create a background go-routine that polls for user movement. Maybe set variable sleep time based on movement speed?
-	// for _, char := range entity_list {
-	// 	go char.move_entity()
-	// }
 
 	ebiten.SetWindowSize(xScreen, yScreen)
 	ebiten.SetWindowTitle("Ebiten Test")
@@ -435,4 +475,11 @@ func main() {
 		panic(err)
 	}
 
+}
+
+func endGame() {
+	spawn_list = nil
+	spawner_list = nil
+	console.console_add("Game over")
+	gameOverFlag = false
 }
