@@ -96,8 +96,8 @@ func placeSpawn(x, y int) {
 // Place a spawner that regularly spawns new mobs.
 func placeSpawner(x, y int) {
 	// Pay for your goods first
-	if score > power(spawnerBaseCost, len(spawner_list)) { //(spawnerBaseCost * len(spawner_list)) {
-		score = score - power(spawnerBaseCost, len(spawner_list)) //(spawnerBaseCost * len(spawner_list))
+	if score > power(spawnerBaseCost, len(spawner_list)) {
+		score = score - power(spawnerBaseCost, len(spawner_list))
 		// Generate a new entity for the spawner for drawing.
 		t := []*target{}
 		t = append(t, target_list[0])
@@ -116,7 +116,7 @@ func placeSpawner(x, y int) {
 			target:           t,
 			path:             []coords{},
 		})
-		spawner_list[0].pathfind(&game_map)
+		spawner_list[len(spawner_list)-1].pathfind(&game_map)
 	}
 }
 
